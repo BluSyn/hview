@@ -2,12 +2,12 @@
 
 #[macro_use] extern crate rocket;
 
+use std::io;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::collections::HashMap;
 
-use thiserror::Error;
-
+use serde::{Serialize, Deserialize};
 use rocket::http::Status;
 use rocket::request::Request;
 use rocket::response::{self, Responder, NamedFile};
@@ -16,20 +16,46 @@ use rocket_contrib::templates::Template;
 
 const BASE_DIR: &str = "./test-fixture/";
 
-struct TemplateRow {
+#[derive(Serialize, Deserialize, Debug)]
+struct TemplateEntry {
     name: String,
     href: String,
-    size: String,
+    size: u64,
     thumb: String,
     ext: String
 }
 
+impl TemplateEntry {
+    fn new() -> Self {
+        Self {
+            name: String::from(""),
+            href: String::from(""),
+            size: 0,
+            thumb: String::from(""),
+            ext: String::from("")
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 struct TemplatePage {
     title: String,
     base_path: String,
     read_only: bool,
-    files: Vec<TemplateRow>,
-    folders: Vec<TemplateRow>
+    files: Vec<TemplateEntry>,
+    folders: Vec<TemplateEntry>
+}
+
+impl TemplatePage {
+    fn new() -> Self {
+        Self {
+            title: String::from(""),
+            base_path: String::from(BASE_DIR),
+            read_only: false,
+            files: Vec::new(),
+            folders: Vec::new()
+        }
+    }
 }
 
 struct CustomResponder {
@@ -58,15 +84,31 @@ impl<'a> Responder<'a> for CustomResponder {
     }
 }
 
-fn get_dir(dir: fs::Metadata) -> Option<Template> {
-    if !dir.is_dir() {
-        return None;
+fn get_dir(path: &PathBuf) -> io::Result<Template> {
+    let mut page = TemplatePage::new();
+
+    for entry in fs::read_dir(&path)? {
+        let entry = entry?;
+        let path = entry.path();
+        let meta = entry.metadata().unwrap();
+
+        let mut details = TemplateEntry::new();
+        details.name = entry.file_name().to_os_string().into_string().unwrap();
+        details.href = String::from(path.to_path_buf().to_str().unwrap());
+        details.size = meta.len();
+        details.ext = path.extension().unwrap().to_os_string().into_string().unwrap();
+
+        if path.is_dir() {
+            page.folders.push(details);
+        } else {
+            page.files.push(details);
+        }
     }
 
-    let mut context = HashMap::new();
-    context.insert("Title", "Testing");
+    // let mut data = HashMap::new();
+    // data.insert("title", "Testing");
 
-    Some(Template::render("dir.tmpl", &context))
+    Ok(Template::render("dir", &page))
 }
 
 #[get("/<file..>")]
@@ -86,12 +128,12 @@ fn main_route(file: PathBuf) -> Result<CustomResponder, NotFound<&'static str>> 
                 }
             }
 
-            match get_dir(meta) {
-                Some(t) => {
+            match get_dir(&path) {
+                Ok(t) => {
                     response.tmpl = Some(t);
                     Ok(response)
                 },
-                None => Err(NotFound("Dir does not exist"))
+                Err(_) => Err(NotFound("Dir does not exist"))
             }
         },
         Err(_) => Err(NotFound("sdfsdf"))
@@ -100,6 +142,6 @@ fn main_route(file: PathBuf) -> Result<CustomResponder, NotFound<&'static str>> 
 
 fn main() {
     rocket::ignite()
-        // .attach(Template::fairing())
+        .attach(Template::fairing())
         .mount("/", routes![main_route]).launch();
 }
