@@ -8,7 +8,7 @@ extern crate lazy_static;
 
 use std::io;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use structopt::StructOpt;
 use rand::seq::IteratorRandom;
@@ -44,6 +44,15 @@ struct Config {
     #[structopt(long, short)]
     verbose: bool,
 
+	//// Thumbnail format; becomes thumbnail extension as well
+	//// Supported formats include image formats supported by imagemagick
+	#[structopt(short, long, default_value="avif")]
+	format: String,
+
+    //// Read-only; disables modification/deletion of files
+    #[structopt(long)]
+    read_only: bool,
+
     //// Disable thumbnails
     #[structopt(long, short)]
     no_thumbs: bool
@@ -51,10 +60,10 @@ struct Config {
 
 lazy_static! {
     static ref CFG: Config = Config::from_args();
+    static ref DIR: PathBuf = PathBuf::from(&CFG.dir);
+    static ref BASEPATH: &'static str = CFG.basepath.as_str();
+    static ref THUMB_FORMAT: &'static str = CFG.format.as_str();
 }
-
-const THUMB_FORMAT: &str = "avif";
-const BASE_DIR: &str = "./test-fixture/";
 
 #[derive(Serialize, Deserialize, Debug)]
 struct TemplateEntry {
@@ -80,7 +89,7 @@ impl TemplateEntry {
 #[derive(Serialize, Deserialize, Debug)]
 struct TemplatePage {
     title: String,
-    base_path: String,
+    base_path: &'static str,
     read_only: bool,
     files:  Vec<TemplateEntry>,
     folders: Vec<TemplateEntry>
@@ -90,8 +99,8 @@ impl TemplatePage {
     fn new() -> Self {
         Self {
             title: String::from(""),
-            base_path: String::from(BASE_DIR),
-            read_only: false,
+            base_path: *BASEPATH,
+            read_only: CFG.read_only,
             files: Vec::new(),
             folders: Vec::new()
         }
@@ -130,7 +139,7 @@ fn file_path_to_thumb(file: &PathBuf) -> Result<PathBuf, &'static str> {
 		file
 			.file_name().ok_or("Filename")?
 			.to_str().ok_or("Filename String")?,
-		THUMB_FORMAT);
+		*THUMB_FORMAT);
 	let file_thumb = file
 		.parent().ok_or("Parent directory")?
 		.join(&thumb_name);
@@ -157,11 +166,11 @@ fn get_random_thumb(path: &PathBuf) -> Option<PathBuf> {
     Some(thumbs.choose(&mut rng).unwrap())
 }
 
-fn get_dir(dir: &PathBuf) -> io::Result<Template> {
+fn get_dir(dir: &PathBuf) -> io::Result<TemplatePage> {
     let mut page = TemplatePage::new();
     let thpath = dir.join(".th");
 
-    for entry in fs::read_dir(&dir)? {
+    for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
 
@@ -192,12 +201,12 @@ fn get_dir(dir: &PathBuf) -> io::Result<Template> {
         }
     }
 
-    Ok(Template::render("dir", &page))
+    Ok(page)
 }
 
 #[get("/<file..>")]
 fn main_route(file: PathBuf) -> Result<CustomResponder, NotFound<&'static str>> {
-    let path = Path::new(BASE_DIR).join(file);
+    let path = DIR.join(file);
     let mut response = CustomResponder::new();
 
     match fs::metadata(&path) {
@@ -213,8 +222,8 @@ fn main_route(file: PathBuf) -> Result<CustomResponder, NotFound<&'static str>> 
             }
 
             match get_dir(&path) {
-                Ok(t) => {
-                    response.tmpl = Some(t);
+                Ok(page) => {
+                    response.tmpl = Some(Template::render("dir", page));
                     Ok(response)
                 },
                 Err(_) => Err(NotFound("Dir does not exist"))
@@ -231,7 +240,7 @@ fn main() -> Result<(), io::Error> {
 
     rocket::custom(rocket_conf)
         .attach(Template::fairing())
-        .mount(CFG.basepath.as_str(), routes![main_route]).launch();
+        .mount(*BASEPATH, routes![main_route]).launch();
 
     Ok(())
 }
