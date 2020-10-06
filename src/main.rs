@@ -1,18 +1,57 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
+
+#[macro_use]
+extern crate lazy_static;
 
 use std::io;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use structopt::StructOpt;
 use rand::seq::IteratorRandom;
 use serde::{Serialize, Deserialize};
+
+use rocket::config::Config as RocketConfig;
 use rocket::http::Status;
 use rocket::request::Request;
 use rocket::response::{self, Responder, NamedFile};
 use rocket::response::status::NotFound;
 use rocket_contrib::templates::Template;
+
+#[derive(StructOpt, Debug)]
+#[structopt(name = "hview")]
+struct Config {
+	//// Root dir containing files to serve
+	#[structopt(short, long, default_value="/media")]
+	dir: String,
+
+	//// Basepath: Additional path for URI's (eg, "subdir" adds "/subdir/" to add URIs)
+	#[structopt(long, default_value="/")]
+	basepath: String,
+
+    //// Host to listen to
+    #[structopt(long, short, default_value="localhost")]
+    host: String,
+
+    //// Port to listen to
+    #[structopt(long, short, default_value="8000")]
+    port: u16,
+
+    //// Verbose log output
+    #[structopt(long, short)]
+    verbose: bool,
+
+    //// Disable thumbnails
+    #[structopt(long, short)]
+    no_thumbs: bool
+}
+
+lazy_static! {
+    static ref CFG: Config = Config::from_args();
+}
 
 const THUMB_FORMAT: &str = "avif";
 const BASE_DIR: &str = "./test-fixture/";
@@ -185,8 +224,14 @@ fn main_route(file: PathBuf) -> Result<CustomResponder, NotFound<&'static str>> 
     }
 }
 
-fn main() {
-    rocket::ignite()
+fn main() -> Result<(), io::Error> {
+    let mut rocket_conf = RocketConfig::active().unwrap();
+    rocket_conf.set_address(CFG.host.as_str()).expect("Unable to bind to host provided");
+    rocket_conf.set_port(CFG.port);
+
+    rocket::custom(rocket_conf)
         .attach(Template::fairing())
-        .mount("/", routes![main_route]).launch();
+        .mount(CFG.basepath.as_str(), routes![main_route]).launch();
+
+    Ok(())
 }
