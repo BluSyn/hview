@@ -2,11 +2,12 @@
  * "hrocket" -> "hview" rocket customizations
  * Includes custom responder, pathbuf, and other work arounds
  */
+
 use std::path::PathBuf;
 use rocket::http::Status;
 use rocket::http::uri::{Uri, Segments, SegmentError};
 use rocket::request::{Request, FromSegments};
-use rocket::response::{self, Responder, NamedFile};
+use rocket::response::{Result as ResponseResult, Responder, NamedFile};
 use rocket_contrib::templates::Template;
 
 pub struct CustomResponder {
@@ -24,7 +25,7 @@ impl CustomResponder {
 }
 
 impl<'a> Responder<'a> for CustomResponder {
-    fn respond_to(self, req: &Request) -> response::Result<'a> {
+    fn respond_to(self, req: &Request) -> ResponseResult<'a> {
         if self.file.is_some() {
             return self.file.unwrap().respond_to(&req);
         } else if self.tmpl.is_some() {

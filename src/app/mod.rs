@@ -2,15 +2,14 @@
  * Main hview structs and config
  */
 
-use std::io;
-use std::fs;
 use std::path::PathBuf;
+use std::io::Result as ioResult;
+use std::fs::{read_dir, metadata};
 
 use rand::seq::IteratorRandom;
 use serde::{Serialize, Deserialize};
 
-use rocket::response::NamedFile;
-use rocket::response::status::NotFound;
+use rocket::response::{NamedFile, status::NotFound};
 use rocket_contrib::templates::Template;
 
 pub mod hrocket;
@@ -81,7 +80,7 @@ fn get_random_thumb(path: &PathBuf) -> Option<PathBuf> {
         return None;
     }
 
-    let thumbs = fs::read_dir(&path).unwrap()
+    let thumbs = read_dir(&path).unwrap()
         .filter_map(|d| {
             let path = d.unwrap().path();
             if path.extension().unwrap() == "avif" {
@@ -94,13 +93,13 @@ fn get_random_thumb(path: &PathBuf) -> Option<PathBuf> {
     Some(thumbs.choose(&mut rng).unwrap())
 }
 
-fn get_dir(dir: &PathBuf) -> io::Result<TemplatePage> {
+fn get_dir(dir: &PathBuf) -> ioResult<TemplatePage> {
     let mut page = TemplatePage::new();
     page.title = dir.to_str().unwrap().to_string();
 
     let thpath = dir.join(".th");
 
-    for entry in fs::read_dir(dir)? {
+    for entry in read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
 
@@ -139,7 +138,7 @@ pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static s
     let path = DIR.join(file.path());
     let mut response = CustomResponder::new();
 
-    match fs::metadata(&path) {
+    match metadata(&path) {
         Ok(meta) => {
             if meta.is_file() {
                 match NamedFile::open(&path) {
