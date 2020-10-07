@@ -11,8 +11,8 @@ use std::io;
 use rocket::config::Config as RocketConfig;
 use rocket_contrib::templates::Template;
 
-mod hview;
-use hview::config::{CFG, BASEPATH};
+mod app;
+use app::config::{CFG, BASEPATH};
 
 fn main() -> Result<(), io::Error> {
     let mut rocket_conf = RocketConfig::active().unwrap();
@@ -21,7 +21,7 @@ fn main() -> Result<(), io::Error> {
 
     rocket::custom(rocket_conf)
         .attach(Template::fairing())
-        .mount(*BASEPATH, routes![hview::route]).launch();
+        .mount(*BASEPATH, routes![app::route]).launch();
 
     Ok(())
 }

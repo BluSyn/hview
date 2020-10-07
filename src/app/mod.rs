@@ -1,7 +1,6 @@
 /**
- * Main hview structs
+ * Main hview structs and config
  */
-
 
 use std::io;
 use std::fs;
