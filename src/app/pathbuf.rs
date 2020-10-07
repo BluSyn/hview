@@ -1,42 +1,3 @@
-/**
- * "hrocket" -> "hview" rocket customizations
- * Includes custom responder, pathbuf, and other work arounds
- */
-
-use std::path::PathBuf;
-use rocket::http::Status;
-use rocket::http::uri::{Uri, Segments, SegmentError};
-use rocket::request::{Request, FromSegments};
-use rocket::response::{Result as ResponseResult, Responder, NamedFile};
-use rocket_contrib::templates::Template;
-
-pub struct CustomResponder {
-    pub file: Option<NamedFile>,
-    pub tmpl: Option<Template>
-}
-
-impl CustomResponder {
-    pub fn new() -> Self {
-        Self {
-            file: None,
-            tmpl: None
-        }
-    }
-}
-
-impl<'a> Responder<'a> for CustomResponder {
-    fn respond_to(self, req: &Request) -> ResponseResult<'a> {
-        if self.file.is_some() {
-            return self.file.unwrap().respond_to(&req);
-        } else if self.tmpl.is_some() {
-            return self.tmpl.unwrap().respond_to(&req);
-        }
-
-        Err(Status::NotFound)
-    }
-}
-
-
 /*
 *
 * Override of FromSegements trait on std::path::PathBuf
@@ -51,6 +12,11 @@ impl<'a> Responder<'a> for CustomResponder {
 * https://github.com/SergioBenitez/Rocket/issues/560
 *
 */
+
+use std::path::PathBuf;
+use rocket::http::uri::{Uri, Segments, SegmentError};
+use rocket::request::FromSegments;
+
 pub struct CustomPathBuf {
     path: PathBuf
 }

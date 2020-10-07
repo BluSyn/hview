@@ -1,7 +1,8 @@
-#![feature(proc_macro_hygiene, decl_macro)]
+#![feature(decl_macro)]
 
 #[macro_use]
 extern crate rocket;
+extern crate rocket_contrib;
 
 #[macro_use]
 extern crate lazy_static;
