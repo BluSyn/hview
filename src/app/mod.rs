@@ -45,3 +45,8 @@ pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static s
         Err(_) => Err(NotFound("sdfsdf"))
     }
 }
+
+#[get("/")]
+pub fn home() -> Result<CustomResponder, NotFound<&'static str>> {
+    route(CustomPathBuf::from("."))
+}

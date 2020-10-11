@@ -28,6 +28,12 @@ impl CustomPathBuf {
         }
     }
 
+    pub fn from(path: &str) -> Self {
+        Self {
+            path: PathBuf::from(path)
+        }
+    }
+
     pub fn push(&mut self, suffix: &str) {
         self.path.push(suffix);
     }

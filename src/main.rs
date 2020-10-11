@@ -21,7 +21,7 @@ fn main() -> Result<(), ioError> {
 
     rocket::custom(rocket_conf)
         .attach(Template::fairing())
-        .mount(*BASEPATH, routes![app::route]).launch();
+        .mount(*BASEPATH, routes![app::home, app::route]).launch();
 
     Ok(())
 }
