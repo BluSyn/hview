@@ -15,11 +15,11 @@ mod app;
 use app::config::{CFG, BASEPATH};
 
 fn main() -> Result<(), ioError> {
-    let mut rocket_conf = RocketConfig::active().unwrap();
-    rocket_conf.set_address(CFG.host.as_str()).expect("Unable to bind to host provided");
-    rocket_conf.set_port(CFG.port);
+    let mut conf = RocketConfig::active().unwrap();
+    conf.set_address(CFG.host.as_str()).expect("Unable to bind to host provided");
+    conf.set_port(CFG.port);
 
-    rocket::custom(rocket_conf)
+    rocket::custom(conf)
         .attach(Template::fairing())
         .mount(*BASEPATH, routes![app::home, app::route]).launch();
 

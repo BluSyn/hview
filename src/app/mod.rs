@@ -42,7 +42,7 @@ pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static s
                 Err(_) => Err(NotFound("Dir does not exist"))
             }
         },
-        Err(_) => Err(NotFound("sdfsdf"))
+        Err(_) => Err(NotFound("File not found"))
     }
 }
 
