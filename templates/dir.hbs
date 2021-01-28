@@ -8,7 +8,21 @@
 
     <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAGFBMVEUAAACAgIDAwMAAAAD//////wAAAP+AgACyGYBKAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhgXAzXpQrjsAAAArklEQVQoz3WQQQ7CIBBF4QbS4gEsYV8DHkAc3Rev0Buw8PoOQ9KZjPGlm76+hE+N+cdJvdughC+r+OqcAxCJB8CHE1vqBiASH6OHFycj2NEE50g8KdgxybBSMQI0oTYqKOim3EjcR9BNQGGnhSmJVh08PG45R+aScctUmS3jXFlEXdRroKHMnOgqzNxUQcNk8W7jd/CQ1IUcklSx6KImo45pRh1D4iPowiTBan74AnnnVMHA9EjhAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTA2LTI0VDIzOjAzOjUzLTA0OjAwyUvdTwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wNi0yNFQyMzowMzo1My0wNDowMLgWZfMAAAAASUVORK5CYII=" rel="icon" type="image/png" />
 
-    <style type="text/css">css_will_be_here</style>
+    <style type="text/css">
+    #grid {
+        display: grid;
+        grid-template-columns: auto  auto auto  auto;
+        grid-gap: 20px;
+    }
+    #grid .dir,
+    #grid .file {
+        padding: 20px;
+        text-align: center;
+    }
+    .hidden {
+        display: none;
+    }
+    </style>
     <script>
         window.ro = {{read_only}}
         window.extraPath = {{base_path}}.slice(0, -1)
@@ -17,35 +31,25 @@
 </head>
 
 <body>
-    <div style="display: none;" onclick="window.quitAll()" id="quitAll">
-        <i style="display: none;" id="toast">cant reach server</i>
-    </div>
+    <h1>{{title}}</h1>
 
-    <h1 onclick="return titleClick(event)">{{title}}</h1>
+    <div id="pic_modal" class="modal hidden"><img draggable="false" /></div>
+    <div id="vid_modal" class="modal hidden"><video controls></video></div>
 
-    <div id="pics" style="display:none;"> <img draggable="false" onclick="window.picsNav()" id="picsHolder" /></div>
-    <div id="video" style="display:none;"> <video controls id="videoHolder"></video></div>
-
-    <section style="display:grid;grid-template-columns: auto auto auto auto;grid-gap:20px;">
+    <section id="grid">
     {{#each folders}}
-        <div style="padding:20px;text-align:center;">
-            {{#if thumb}} <a onclick="return onClickLink(event)" href="{{path}}"><img src="{{thumb}}" loading="lazy" /></a> {{/if}}
-            <strong>{{name}}</strong>
+        <div class="dir">
+            {{#if thumb}} <a href="{{path}}"><img src="{{thumb}}" loading="lazy" /></a> {{/if}}
+            <a href="{{path}}"><strong>{{name}}</strong></a>
         </div>
     {{/each}}
     {{#each files}}
-        <div style="padding:20px;text-align:center;">
-            {{#if thumb}} <a onclick="return onClickLink(event)" href="{{path}}"><img src="{{thumb}}" loading="lazy" /></a> {{/if}}
+        <div class="file">
+            {{#if thumb}} <a href="{{path}}"><img src="{{thumb}}" loading="lazy" /></a> {{/if}}
             <a href="{{path}}"><strong>{{name}}</strong></a> ({{size}} Bytes)
+            {{date_string}}
         </div>
     {{/each}}
     </section>
-
-    <div id="upBar" class="bar">
-        <span style="display: none;" class="barName" id="upBarName"></span>
-        <div style="display: none; background-color: green;" class="barPc" id="upBarPc">1%</div>
-    </div>
-    <div id="ok" class="notif icon-large-ok"></div>
-    <div id="sad" class="notif icon-large-sad-server"></div>
 </body>
 </html>

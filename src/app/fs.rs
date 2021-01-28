@@ -8,6 +8,7 @@ use std::io::Result as ioResult;
 
 use serde::{Serialize, Deserialize};
 use rand::seq::IteratorRandom;
+use chrono::{TimeZone, Utc};
 
 use crate::app::config::{CFG, BASEPATH, THUMB_FORMAT};
 
@@ -16,6 +17,8 @@ struct TemplateEntry {
     name: String,
     path: String,
     size: u64,
+    date: Option<u64>,
+    date_string: String,
     thumb: Option<PathBuf>,
     ext: Option<String>
 }
@@ -26,6 +29,8 @@ impl TemplateEntry {
             name: String::from(""),
             path: String::from(""),
             size: 0,
+            date: None,
+            date_string: String::from(""),
             thumb: None,
             ext: None
         }
@@ -69,16 +74,25 @@ pub fn get_dir(dir: &PathBuf) -> ioResult<TemplatePage> {
         }
 
         let meta = entry.metadata().unwrap();
-        let ext = path.extension();
 
         let mut details = TemplateEntry::new();
         details.name = entry.file_name().to_str().unwrap().to_string();
         details.path = path.to_path_buf().to_str().unwrap().to_string();
         details.size = meta.len();
-        details.ext = if ext.is_none() {
-            None
+        details.date = if let Ok(date) = meta.modified() {
+            Some(date.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs())
         } else {
-            Some(ext.unwrap().to_str().unwrap().to_string())
+            None
+        };
+        details.date_string = if let Some(ts) = details.date {
+            Utc.timestamp(ts as i64, 0).format("%Y-%m-%d %H:%M:%S").to_string()
+        } else {
+            String::from("")
+        };
+        details.ext = if let Some(ext) = path.extension() {
+            Some(ext.to_str().unwrap().to_string())
+        } else {
+            None
         };
 
         if path.is_dir() {
@@ -116,7 +130,7 @@ pub fn get_random_thumb(path: &PathBuf) -> Option<PathBuf> {
     let thumbs = read_dir(&path).unwrap()
         .filter_map(|d| {
             let path = d.unwrap().path();
-            if path.extension().unwrap() == "avif" {
+            if path.extension().unwrap() == *THUMB_FORMAT {
                 return Some(path);
             }
             None
