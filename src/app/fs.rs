@@ -101,7 +101,16 @@ pub fn get_dir(dir: &PathBuf) -> ioResult<TemplatePage> {
             details.thumb = get_random_thumb(&thpath);
             page.folders.push(details);
         } else {
-            details.thumb = file_path_to_thumb(&path).ok();
+            details.thumb = if let Ok(tpath) = file_path_to_thumb(&path) {
+                if tpath.exists() {
+                    Some(tpath.strip_prefix(&basedir).unwrap().to_path_buf())
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+
             page.files.push(details);
         }
     }
