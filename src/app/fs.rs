@@ -10,7 +10,7 @@ use serde::{Serialize, Deserialize};
 use rand::seq::IteratorRandom;
 use chrono::{TimeZone, Utc};
 
-use crate::app::config::{CFG, BASEPATH, THUMB_FORMAT};
+use crate::app::config::{CFG, DIR, BASEPATH, THUMB_FORMAT};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct TemplateEntry {
@@ -60,24 +60,24 @@ impl TemplatePage {
 
 pub fn get_dir(dir: &PathBuf) -> ioResult<TemplatePage> {
     let mut page = TemplatePage::new();
-    page.title = dir.to_str().unwrap().to_string();
-
+    let basedir = DIR.to_str().unwrap();
     let thpath = dir.join(".th");
+    page.title = dir.strip_prefix(&basedir).unwrap().to_str().unwrap().to_string();
 
     for entry in read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
 
-        // Skip existing th paths
+        // Skip existing thumbnails
         if path == thpath {
             continue;
         }
 
         let meta = entry.metadata().unwrap();
-
         let mut details = TemplateEntry::new();
+
         details.name = entry.file_name().to_str().unwrap().to_string();
-        details.path = path.to_path_buf().to_str().unwrap().to_string();
+        details.path = path.strip_prefix(&basedir).unwrap().to_str().unwrap().to_string();
         details.size = meta.len();
         details.date = if let Ok(date) = meta.modified() {
             Some(date.duration_since(std::time::UNIX_EPOCH).unwrap().as_secs())
@@ -95,6 +95,8 @@ pub fn get_dir(dir: &PathBuf) -> ioResult<TemplatePage> {
             None
         };
 
+        // Folders display a random thumbnail from all their files (if available)
+        // Files return their individual thumbnail (if available)
         if path.is_dir() {
             details.thumb = get_random_thumb(&thpath);
             page.folders.push(details);
