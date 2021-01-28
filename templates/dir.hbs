@@ -48,6 +48,9 @@
         padding: 20px;
         text-align: center;
     }
+    .file time, .file small {
+        font-size: 0.5em;
+    }
     .arrow {
         height: 22px;
         width: 22px;
@@ -75,26 +78,61 @@
         display: none;
     }
     </style>
+    <script type="text/javascript">
+    const imgModal = document.getElementById("img_modal");
+    const imgTypes = ['.jpg', '.jpeg', '.png', '.gif', '.avif', '.webp', '.heic'];
+    const isImg = src => src && picTypes.find(type => src.toLocaleLowerCase().includes(type));
+    const vidModal = document.getElementById("vid_modal");
+    const videosTypes = ['.mp4', '.webm', '.mts', '.mov', '.ogv', '.ogg', '.mp3', '.flac', '.wav'];
+    const isVideo = src => src && videosTypes.find(type => src.toLocaleLowerCase().includes(type));
+
+    const gotoFile = function(e) {
+        const file = e.pathname;
+        if (isImg(file)) {
+            showImg(file);
+            return false;
+        }
+        if (isVideo(file)) {
+            showVideo(file);
+            return false;
+        }
+
+        return true;
+    };
+    const gotoFolder = function(e) {
+        return true;
+    };
+
+    const showImg = function(file) {
+        imgModal.style.display = "block";
+        imgModal.firstChild.src = file;
+    };
+    const showVid = function(file) {
+        vidModal.style.display = "block";
+        vidModal.firstChild.src = file;
+    }
+    </script>
 </head>
 
 <body>
     <h1>{{title}}</h1>
 
-    <div id="pic_modal" class="modal hidden"><img draggable="false" /></div>
+    <div id="img_modal" class="modal hidden"><img draggable="false" /></div>
     <div id="vid_modal" class="modal hidden"><video controls></video></div>
 
     <section id="grid">
     {{#each folders}}
         <div class="dir">
-            {{#if thumb}} <a href="{{path}}"><img src="{{thumb}}" loading="lazy" /></a> {{/if}}
-            <a href="{{path}}" class="icon-folder"><strong>{{name}}</strong></a>
+            {{#if thumb}} <a href="{{path}}" onclick="gotoFolder"><img src="{{thumb}}" loading="lazy" /></a><br /> {{/if}}
+            <a href="{{path}}" onclick="gotoFolder" class="icon-folder"><strong>{{name}}</strong></a>
         </div>
     {{/each}}
     {{#each files}}
         <div class="file">
-            {{#if thumb}} <a href="{{path}}"><img src="{{thumb}}" loading="lazy" /></a> {{/if}}
-            <a href="{{path}}"><strong>{{name}}</strong></a> ({{size}} Bytes)
-            {{date_string}}
+            {{#if thumb}} <a href="{{path}}" onclick="gotoFile"><img src="{{thumb}}" loading="lazy" /></a><br /> {{/if}}
+            <a href="{{path}}" onclick="gotoFile"><strong>{{name}}</strong></a><br />
+            <small>{{size}} B</small><br />
+            <time datetime="{{date_string}}">{{date_string}}</time>
         </div>
     {{/each}}
     </section>
