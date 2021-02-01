@@ -80,7 +80,7 @@
     </style>
     <script type="text/javascript">
     const imgModal = document.getElementById("img_modal");
-    const imgTypes = ['.jpg', '.jpeg', '.png', '.gif', '.avif', '.webp', '.heic'];
+    const imgTypes = ['.jpg', '.jpeg', '.jpe', '.png', '.gif', '.avif', '.webp', '.heic'];
     const isImg = src => src && picTypes.find(type => src.toLocaleLowerCase().includes(type));
     const vidModal = document.getElementById("vid_modal");
     const videosTypes = ['.mp4', '.webm', '.mts', '.mov', '.ogv', '.ogg', '.mp3', '.flac', '.wav'];
@@ -123,14 +123,14 @@
     <section id="grid">
     {{#each folders}}
         <div class="dir">
-            {{#if thumb}} <a href="{{path}}" onclick="gotoFolder"><img src="{{thumb}}" loading="lazy" /></a><br /> {{/if}}
-            <a href="{{path}}" onclick="gotoFolder" class="icon-folder"><strong>{{name}}</strong></a>
+            {{#if thumb}} <a href="{{path}}" onclick="return gotoFolder(event);"><img src="{{thumb}}" loading="lazy" /></a><br /> {{/if}}
+            <a href="{{path}}" onclick="return gotoFolder(event);" class="icon-folder"><strong>{{name}}</strong></a>
         </div>
     {{/each}}
     {{#each files}}
         <div class="file">
-            {{#if thumb}} <a href="{{path}}" onclick="gotoFile"><img src="{{thumb}}" loading="lazy" /></a><br /> {{/if}}
-            <a href="{{path}}" onclick="gotoFile"><strong>{{name}}</strong></a><br />
+            {{#if thumb}} <a href="{{path}}" onclick="return gotoFile(event);"><img src="{{thumb}}" loading="lazy" /></a><br /> {{/if}}
+            <a href="{{path}}" onclick="return gotoFile(event);"><strong>{{name}}</strong></a><br />
             <small>{{size}} B</small><br />
             <time datetime="{{date_string}}">{{date_string}}</time>
         </div>
