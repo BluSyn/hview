@@ -11,12 +11,11 @@ use rocket_contrib::templates::Template;
 mod responder;
 mod pathbuf;
 mod fs;
-pub mod config;
 
 use fs::get_dir;
 use responder::CustomResponder;
 use pathbuf::CustomPathBuf;
-use config::DIR;
+use crate::config::DIR;
 
 #[get("/<file..>")]
 pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static str>> {

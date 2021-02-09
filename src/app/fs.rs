@@ -7,10 +7,10 @@ use std::fs::read_dir;
 use std::io::Result as ioResult;
 
 use serde::{Serialize, Deserialize};
-use rand::seq::IteratorRandom;
 use chrono::{TimeZone, Utc};
+use rand::seq::IteratorRandom;
 
-use crate::app::config::{CFG, DIR, BASEPATH, THUMB_FORMAT};
+use crate::config::{CFG, DIR, BASEPATH, THUMB_FORMAT};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct TemplateEntry {

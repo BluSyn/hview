@@ -6,7 +6,8 @@ use rocket::config::Config as RocketConfig;
 use rocket_contrib::templates::Template;
 
 mod app;
-use app::config::{CFG, BASEPATH};
+mod config;
+use config::{CFG, BASEPATH};
 
 fn main() -> Result<(), ioError> {
     let mut conf = RocketConfig::active().unwrap();
