@@ -1,13 +1,7 @@
 #![feature(decl_macro)]
 
-#[macro_use]
-extern crate rocket;
-extern crate rocket_contrib;
-
-#[macro_use]
-extern crate lazy_static;
-
 use std::io::Error as ioError;
+use rocket::routes;
 use rocket::config::Config as RocketConfig;
 use rocket_contrib::templates::Template;
 

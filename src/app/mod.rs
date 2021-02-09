@@ -4,6 +4,7 @@
 
 use std::fs::metadata;
 
+use rocket::get;
 use rocket::response::{NamedFile, status::NotFound};
 use rocket_contrib::templates::Template;
 

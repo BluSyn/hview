@@ -2,6 +2,7 @@
  * HView Config
  */
 
+use lazy_static::lazy_static;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
