@@ -1,7 +1,7 @@
 /*
 *
 * Override of FromSegements trait on std::path::PathBuf
-* https://github.com/SergioBenitez/Rocket/blob/master/lib/src/request/param.rs
+* https://github.com/SergioBenitez/Rocket/blob/master/core/lib/src/request/param.rs
 * -> line 328
 *
 * We need to accept hidden files (".dotfiles") in given routes, which Rocket doesn't allow.
@@ -59,8 +59,7 @@ impl<'a> FromSegments<'a> for CustomPathBuf {
 
             if decoded == ".." {
                 path.pop();
-            }
-            else if decoded.starts_with('*') {
+            } else if decoded.starts_with('*') {
                 return Err(SegmentError::BadStart('*'))
             } else if decoded.ends_with(':') {
                 return Err(SegmentError::BadEnd(':'))

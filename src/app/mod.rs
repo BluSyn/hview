@@ -12,7 +12,7 @@ mod responder;
 mod pathbuf;
 mod fs;
 
-use fs::get_dir;
+use fs::get_dir_template;
 use responder::CustomResponder;
 use pathbuf::CustomPathBuf;
 use crate::config::DIR;
@@ -34,7 +34,7 @@ pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static s
                 }
             }
 
-            match get_dir(&path) {
+            match get_dir_template(&path) {
                 Ok(page) => {
                     response.tmpl = Some(Template::render("dir", page));
                     Ok(response)

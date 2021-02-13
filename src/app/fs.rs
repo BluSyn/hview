@@ -38,7 +38,7 @@ impl TemplateEntry {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct TemplatePage {
+pub struct TemplateDir {
     title: String,
     base_path: &'static str,
     read_only: bool,
@@ -46,7 +46,7 @@ pub struct TemplatePage {
     folders: Vec<TemplateEntry>
 }
 
-impl TemplatePage {
+impl TemplateDir {
     fn new() -> Self {
         Self {
             title: String::from(""),
@@ -58,8 +58,9 @@ impl TemplatePage {
     }
 }
 
-pub fn get_dir(dir: &PathBuf) -> ioResult<TemplatePage> {
-    let mut page = TemplatePage::new();
+// Load DIR details into TemplateDir struct
+pub fn get_dir_template(dir: &PathBuf) -> ioResult<TemplateDir> {
+    let mut page = TemplateDir::new();
     let basedir = DIR.to_str().unwrap();
     let thpath = dir.join(".th");
     page.title = dir.strip_prefix(&basedir).unwrap().to_str().unwrap().to_string();
@@ -149,4 +150,35 @@ pub fn get_random_thumb(path: &PathBuf) -> Option<PathBuf> {
 
     let mut rng = rand::thread_rng();
     Some(thumbs.choose(&mut rng).unwrap())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_file_path_to_thumb() {
+        let init = PathBuf::from("/dir/file.jpg");
+        let result = Ok(PathBuf::from("/dir/.th/file.jpg.avif"));
+        assert_eq!(file_path_to_thumb(&init), result, "Basic image path");
+
+        let init = PathBuf::from("/Pictures/Special Photos!/file@example.com/video.avi");
+        let result = Ok(PathBuf::from("/Pictures/Special Photos!/file@example.com/.th/video.avi.avif"));
+        assert_eq!(file_path_to_thumb(&init), result, "Uncommon video path");
+
+        let init = PathBuf::from("/home/user/Pictures/sub/../base.jpg");
+        let result = Ok(PathBuf::from("/home/user/Pictures/sub/../.th/base.jpg.avif"));
+        assert_eq!(file_path_to_thumb(&init), result, "Parent in path");
+
+        let init = PathBuf::from("/etc/config_file");
+        let result = Ok(PathBuf::from("/etc/.th/config_file.avif"));
+        assert_eq!(file_path_to_thumb(&init), result, "Path without file ext");
+    }
+
+    #[test]
+    fn test_get_random_thumb() {
+        let dir = PathBuf::from(format!("{}hols/.th", &DIR.to_str().unwrap()));
+        let thumb = get_random_thumb(&dir);
+        assert!(thumb.is_some());
+    }
 }
