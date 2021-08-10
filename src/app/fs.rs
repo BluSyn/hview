@@ -24,7 +24,7 @@ struct TemplateEntry {
     size: Option<u64>,
     date: Option<u64>,
     date_string: Option<String>,
-    thumb: Option<PathBuf>,
+    thumb: Option<String>,
     ext: Option<String>,
 }
 
@@ -118,12 +118,15 @@ pub fn get_dir_template(dir: &PathBuf) -> Result<TemplateDir, TemplateError> {
         // Folders display a random thumbnail from all their files (if available)
         // Files return their individual thumbnail (if available)
         if path.is_dir() {
-            details.thumb = get_random_thumb(&thpath);
+            details.thumb = match get_random_thumb(&path) {
+                Some(th) => Some(th.strip_prefix(&basedir).unwrap().display().to_string()),
+                None => None,
+            };
             page.folders.push(details);
         } else {
             details.thumb = if let Ok(tpath) = file_path_to_thumb(&path) {
                 if tpath.exists() {
-                    Some(tpath.strip_prefix(&basedir).unwrap().to_path_buf())
+                    Some(tpath.strip_prefix(&basedir).unwrap().display().to_string())
                 } else {
                     None
                 }
@@ -200,7 +203,7 @@ mod test {
 
     #[test]
     fn test_get_random_thumb() {
-        let dir = PathBuf::from(format!("{}hols/.th", &DIR.to_str().unwrap()));
+        let dir = PathBuf::from(format!("{}imgs/.th", &DIR.to_str().unwrap()));
         let thumb = get_random_thumb(&dir);
         assert!(thumb.is_some());
     }

@@ -79,14 +79,14 @@
         <div class="row gx-5">
         {% for folder in folders %}
             <div class="col-lg-3 dir">
-                {% if folder.thumb %} <a href="{{folder.path}}"><img src="{{folder.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{folder.path}}" class="icon-folder"><strong>{{folder.name}}</strong></a>
+                {% if folder.thumb %} <a href="{{base_path}}{{folder.path}}"><img src="{{base_path}}{{folder.thumb}}" loading="lazy" /></a><br /> {% endif %}
+                <a href="{{base_path}}{{folder.path}}" class="icon-folder"><strong>{{folder.name}}</strong></a>
             </div>
         {% endfor %}
         {% for file in files %}
             <div class="col-lg-3 file">
-                {% if file.thumb %} <a href="{{file.path}}"><img src="{{file.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{file.path}}"><strong>{{file.name}}</strong></a><br />
+                {% if file.thumb %} <a href="{{base_path}}{{file.path}}"><img src="{{base_path}}{{file.thumb}}" loading="lazy" /></a><br /> {% endif %}
+                <a href="{{base_path}}{{file.path}}"><strong>{{file.name}}</strong></a><br />
                 <small>{{file.size}} B</small><br />
                 <time datetime="{{file.date_string}}">{{file.date_string}}</time>
             </div>
