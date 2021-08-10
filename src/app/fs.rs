@@ -1,6 +1,6 @@
 use std::fs::read_dir;
-use std::io::Result as ioResult;
 use std::path::PathBuf;
+use thiserror::Error;
 
 use chrono::{TimeZone, Utc};
 use rand::seq::IteratorRandom;
@@ -8,13 +8,22 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::{BASEPATH, CFG, DIR, THUMB_FORMAT};
 
+#[derive(Error, Debug)]
+pub enum TemplateError {
+    #[error("Directory not found")]
+    NotFound,
+
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 struct TemplateEntry {
-    name: String,
-    path: String,
-    size: u64,
+    name: Option<String>,
+    path: Option<String>,
+    size: Option<u64>,
     date: Option<u64>,
-    date_string: String,
+    date_string: Option<String>,
     thumb: Option<PathBuf>,
     ext: Option<String>,
 }
@@ -22,11 +31,11 @@ struct TemplateEntry {
 impl TemplateEntry {
     fn new() -> Self {
         Self {
-            name: String::from(""),
-            path: String::from(""),
-            size: 0,
+            name: None,
+            path: None,
+            size: None,
             date: None,
-            date_string: String::from(""),
+            date_string: None,
             thumb: None,
             ext: None,
         }
@@ -55,22 +64,21 @@ impl TemplateDir {
 }
 
 // Load DIR details into TemplateDir struct
-pub fn get_dir_template(dir: &PathBuf) -> ioResult<TemplateDir> {
+pub fn get_dir_template(dir: &PathBuf) -> Result<TemplateDir, TemplateError> {
+    if !dir.is_dir() {
+        return Err(TemplateError::NotFound);
+    }
+
     let mut page = TemplateDir::new();
-    let basedir = DIR.to_str().unwrap();
+    let basedir = DIR.as_path();
     let thpath = dir.join(".th");
-    page.title = dir
-        .strip_prefix(&basedir)
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
+    page.title = dir.strip_prefix(&basedir).unwrap().display().to_string();
 
     for entry in read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
 
-        // Skip existing thumbnails
+        // Skip thumbnail dir
         if path == thpath {
             continue;
         }
@@ -78,14 +86,9 @@ pub fn get_dir_template(dir: &PathBuf) -> ioResult<TemplateDir> {
         let meta = entry.metadata().unwrap();
         let mut details = TemplateEntry::new();
 
-        details.name = entry.file_name().to_str().unwrap().to_string();
-        details.path = path
-            .strip_prefix(&basedir)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-        details.size = meta.len();
+        details.name = entry.file_name().into_string().ok();
+        details.path = Some(path.strip_prefix(&basedir).unwrap().display().to_string());
+        details.size = Some(meta.len());
         details.date = if let Ok(date) = meta.modified() {
             Some(
                 date.duration_since(std::time::UNIX_EPOCH)
@@ -95,13 +98,17 @@ pub fn get_dir_template(dir: &PathBuf) -> ioResult<TemplateDir> {
         } else {
             None
         };
+
         details.date_string = if let Some(ts) = details.date {
-            Utc.timestamp(ts as i64, 0)
-                .format("%Y-%m-%d %H:%M:%S")
-                .to_string()
+            Some(
+                Utc.timestamp(ts as i64, 0)
+                    .format("%Y-%m-%d %H:%M:%S")
+                    .to_string(),
+            )
         } else {
-            String::from("")
+            None
         };
+
         details.ext = if let Some(ext) = path.extension() {
             Some(ext.to_str().unwrap().to_string())
         } else {
@@ -152,16 +159,16 @@ pub fn get_random_thumb(path: &PathBuf) -> Option<PathBuf> {
         return None;
     }
 
-    let thumbs = read_dir(&path).unwrap().filter_map(|d| {
-        let path = d.unwrap().path();
-        if path.extension().unwrap() == *THUMB_FORMAT {
+    let thumbs = read_dir(&path).ok()?.filter_map(|d| {
+        let path = d.ok()?.path();
+        if path.extension()? == *THUMB_FORMAT {
             return Some(path);
         }
         None
     });
 
     let mut rng = rand::thread_rng();
-    Some(thumbs.choose(&mut rng).unwrap())
+    Some(thumbs.choose(&mut rng)?)
 }
 
 #[cfg(test)]

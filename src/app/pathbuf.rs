@@ -1,4 +1,4 @@
-/*
+/**
 *
 * Override of FromSegements trait on std::path::PathBuf
 * https://github.com/SergioBenitez/Rocket/blob/master/core/lib/src/request/param.rs
@@ -12,7 +12,6 @@
 * https://github.com/SergioBenitez/Rocket/issues/560
 *
 */
-
 use rocket::http::uri::{SegmentError, Segments, Uri};
 use rocket::request::FromSegments;
 use std::path::PathBuf;

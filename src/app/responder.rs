@@ -21,6 +21,10 @@ impl CustomResponder {
     }
 }
 
+// Response flow:
+// If path correspondes to static file, return raw static file
+// otherwise return template if defined
+// otherwise return 404
 impl<'a> Responder<'a> for CustomResponder {
     fn respond_to(self, req: &Request) -> ResponseResult<'a> {
         if self.file.is_some() {
