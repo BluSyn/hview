@@ -6,51 +6,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+
     <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAGFBMVEUAAACAgIDAwMAAAAD//////wAAAP+AgACyGYBKAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhgXAzXpQrjsAAAArklEQVQoz3WQQQ7CIBBF4QbS4gEsYV8DHkAc3Rev0Buw8PoOQ9KZjPGlm76+hE+N+cdJvdughC+r+OqcAxCJB8CHE1vqBiASH6OHFycj2NEE50g8KdgxybBSMQI0oTYqKOim3EjcR9BNQGGnhSmJVh08PG45R+aScctUmS3jXFlEXdRroKHMnOgqzNxUQcNk8W7jd/CQ1IUcklSx6KImo45pRh1D4iPowiTBan74AnnnVMHA9EjhAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTA2LTI0VDIzOjAzOjUzLTA0OjAwyUvdTwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wNi0yNFQyMzowMzo1My0wNDowMLgWZfMAAAAASUVORK5CYII=" rel="icon" type="image/png" />
 
     <style type="text/css">
-    body, html {
-        padding: 0;
-        margin: 0;
-    }
-    ::-webkit-scrollbar {
-        background: #2d3436;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: gray;
-    }
-    html {
-        color: #dfe6e9;
-        background-color: #2d3436;
-        font-size: 1.5em;
-        font-family: Helvetica, Arial, sans-serif;
-        overflow-x: hidden;
-        scrollbar-color: gray #2d3436;
-        -webkit-tap-highlight-color: transparent;
-    }
-    body {
-        font-family: sans-serif;
-        background: rgba(0, 0, 0, 0.2);
-    }
-    a {
-        color: #dfe6e9;
-        text-decoration: none;
-        background-color: transparent !important;
-        outline: 0;
-    }
-    #grid {
-        display: grid;
-        grid-template-columns: auto  auto auto  auto;
-        grid-gap: 20px;
-    }
-    #grid .dir,
-    #grid .file {
-        padding: 20px;
-        text-align: center;
-    }
-    .file time, .file small {
-        font-size: 0.5em;
-    }
     .arrow {
         height: 22px;
         width: 22px;
@@ -70,12 +31,6 @@
         width: 27px;
         background-repeat: no-repeat;
         background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAIVBMVEUAAACZmQAICAj4+Pj//5n/+/DMzGYAAAD/zJkzMwD///9AsZvJAAAAAXRSTlMAQObYZgAAAAFiS0dECmjQ9FYAAAAHdElNRQfiBhgXARMJeV+TAAAAuElEQVQoz62QMQ7CQBADLyVlQKLmD/ABpC38AF5AgZSOR7i4kpbf4t3b4xLR4i6+sb1KKb+apf3qe7qY2fU0jIO5BjLdwhjI8dE0Nylx3uiZFS4YjfduAJADLCvCCNrKoAL2JajPyG0IZ9IQGzP1S2iSMdsMZgbshOIVsRsGs7WidzAm1IGaEfgNIugRxIJblXUQ/my1dXgaUaDLZDDm5HgiIvGqQyw7GJVOIO7oPzm1lN17o1f5gz69jIC7vf9PIQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNFQyMzowMToxOS0wNDowMO2EXMYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjRUMjM6MDE6MTktMDQ6MDCc2eR6AAAAAElFTkSuQmCC");
-    }
-    a.icon-folder {
-        padding-left: 35px;
-    }
-    .hidden {
-        display: none;
     }
     </style>
     <script type="text/javascript">
@@ -120,21 +75,23 @@
     <div id="img_modal" class="modal hidden"><img draggable="false" /></div>
     <div id="vid_modal" class="modal hidden"><video controls></video></div>
 
-    <section id="grid">
-    {{#each folders}}
-        <div class="dir">
-            {{#if thumb}} <a href="{{path}}" onclick="return gotoFolder(event);"><img src="{{thumb}}" loading="lazy" /></a><br /> {{/if}}
-            <a href="{{path}}" onclick="return gotoFolder(event);" class="icon-folder"><strong>{{name}}</strong></a>
+    <div class="container">
+        <div class="row gx-5">
+        {% for folder in folders %}
+            <div class="col-lg-3 dir">
+                {% if folder.thumb %} <a href="{{folder.path}}"><img src="{{folder.thumb}}" loading="lazy" /></a><br /> {% endif %}
+                <a href="{{folder.path}}" class="icon-folder"><strong>{{folder.name}}</strong></a>
+            </div>
+        {% endfor %}
+        {% for file in files %}
+            <div class="col-lg-3 file">
+                {% if file.thumb %} <a href="{{file.path}}"><img src="{{file.thumb}}" loading="lazy" /></a><br /> {% endif %}
+                <a href="{{file.path}}"><strong>{{file.name}}</strong></a><br />
+                <small>{{file.size}} B</small><br />
+                <time datetime="{{file.date_string}}">{{file.date_string}}</time>
+            </div>
+        {% endfor %}
         </div>
-    {{/each}}
-    {{#each files}}
-        <div class="file">
-            {{#if thumb}} <a href="{{path}}" onclick="return gotoFile(event);"><img src="{{thumb}}" loading="lazy" /></a><br /> {{/if}}
-            <a href="{{path}}" onclick="return gotoFile(event);"><strong>{{name}}</strong></a><br />
-            <small>{{size}} B</small><br />
-            <time datetime="{{date_string}}">{{date_string}}</time>
-        </div>
-    {{/each}}
-    </section>
+    </div>
 </body>
 </html>
