@@ -2,22 +2,21 @@
  * "hrocket" -> "hview" rocket customizations
  * Includes custom responder, pathbuf, and other work arounds
  */
-
 use rocket::http::Status;
 use rocket::request::Request;
-use rocket::response::{Result as ResponseResult, Responder, NamedFile};
+use rocket::response::{NamedFile, Responder, Result as ResponseResult};
 use rocket_contrib::templates::Template;
 
 pub struct CustomResponder {
     pub file: Option<NamedFile>,
-    pub tmpl: Option<Template>
+    pub tmpl: Option<Template>,
 }
 
 impl CustomResponder {
     pub fn new() -> Self {
         Self {
             file: None,
-            tmpl: None
+            tmpl: None,
         }
     }
 }

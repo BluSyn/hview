@@ -1,21 +1,17 @@
-/**
- * Main hview structs and config
- */
-
 use std::fs::metadata;
 
 use rocket::get;
-use rocket::response::{NamedFile, status::NotFound};
+use rocket::response::{status::NotFound, NamedFile};
 use rocket_contrib::templates::Template;
 
-mod responder;
-mod pathbuf;
 mod fs;
+mod pathbuf;
+mod responder;
 
-use fs::get_dir_template;
-use responder::CustomResponder;
-use pathbuf::CustomPathBuf;
 use crate::config::DIR;
+use fs::get_dir_template;
+use pathbuf::CustomPathBuf;
+use responder::CustomResponder;
 
 #[get("/<file..>")]
 pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static str>> {
@@ -29,8 +25,8 @@ pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static s
                     Ok(f) => {
                         response.file = Some(f);
                         return Ok(response);
-                    },
-                    Err(_) => return Err(NotFound("Could not load file"))
+                    }
+                    Err(_) => return Err(NotFound("Could not load file")),
                 }
             }
 
@@ -38,11 +34,11 @@ pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static s
                 Ok(page) => {
                     response.tmpl = Some(Template::render("dir", page));
                     Ok(response)
-                },
-                Err(_) => Err(NotFound("Dir does not exist"))
+                }
+                Err(_) => Err(NotFound("Dir does not exist")),
             }
-        },
-        Err(_) => Err(NotFound("File not found"))
+        }
+        Err(_) => Err(NotFound("File not found")),
     }
 }
 

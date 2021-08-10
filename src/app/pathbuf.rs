@@ -13,12 +13,12 @@
 *
 */
 
-use std::path::PathBuf;
-use rocket::http::uri::{Uri, Segments, SegmentError};
+use rocket::http::uri::{SegmentError, Segments, Uri};
 use rocket::request::FromSegments;
+use std::path::PathBuf;
 
 pub struct CustomPathBuf {
-    path: PathBuf
+    path: PathBuf,
 }
 
 impl CustomPathBuf {
@@ -30,7 +30,7 @@ impl CustomPathBuf {
 
     pub fn from(path: &str) -> Self {
         Self {
-            path: PathBuf::from(path)
+            path: PathBuf::from(path),
         }
     }
 
@@ -54,23 +54,23 @@ impl<'a> FromSegments<'a> for CustomPathBuf {
         let mut path = CustomPathBuf::new();
 
         for segment in segments {
-            let decoded = Uri::percent_decode(segment.as_bytes())
-                .map_err(|e| SegmentError::Utf8(e))?;
+            let decoded =
+                Uri::percent_decode(segment.as_bytes()).map_err(|e| SegmentError::Utf8(e))?;
 
             if decoded == ".." {
                 path.pop();
             } else if decoded.starts_with('*') {
-                return Err(SegmentError::BadStart('*'))
+                return Err(SegmentError::BadStart('*'));
             } else if decoded.ends_with(':') {
-                return Err(SegmentError::BadEnd(':'))
+                return Err(SegmentError::BadEnd(':'));
             } else if decoded.ends_with('>') {
-                return Err(SegmentError::BadEnd('>'))
+                return Err(SegmentError::BadEnd('>'));
             } else if decoded.ends_with('<') {
-                return Err(SegmentError::BadEnd('<'))
+                return Err(SegmentError::BadEnd('<'));
             } else if decoded.contains('/') {
-                return Err(SegmentError::BadChar('/'))
+                return Err(SegmentError::BadChar('/'));
             } else if cfg!(windows) && decoded.contains('\\') {
-                return Err(SegmentError::BadChar('\\'))
+                return Err(SegmentError::BadChar('\\'));
             } else {
                 path.push(&*decoded)
             }

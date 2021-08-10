@@ -1,7 +1,3 @@
-/**
- * HView Config
- */
-
 use lazy_static::lazy_static;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -9,30 +5,30 @@ use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "hview")]
 pub struct Config {
-	//// Root dir containing files to serve
-	#[structopt(short, long, default_value="./test-fixture/")]
-	pub dir: String,
+    //// Root dir containing files to serve
+    #[structopt(short, long, default_value = "./test-fixture/")]
+    pub dir: String,
 
-	//// Basepath: Additional path for URI's (eg, "subdir" adds "/subdir/" to add URIs)
-	#[structopt(long, default_value="/")]
-	pub basepath: String,
+    //// Basepath: Additional path for URI's (eg, "subdir" adds "/subdir/" to add URIs)
+    #[structopt(long, default_value = "/")]
+    pub basepath: String,
 
     //// Host to listen to
-    #[structopt(long, short, default_value="localhost")]
+    #[structopt(long, short, default_value = "localhost")]
     pub host: String,
 
     //// Port to listen to
-    #[structopt(long, short, default_value="8000")]
+    #[structopt(long, short, default_value = "8000")]
     pub port: u16,
 
     //// Verbose log output
     #[structopt(long, short)]
     pub verbose: bool,
 
-	//// Thumbnail format; becomes thumbnail extension as well
-	//// Supported formats include image formats supported by imagemagick
-	#[structopt(short, long, default_value="avif")]
-	pub format: String,
+    //// Thumbnail format; becomes thumbnail extension as well
+    //// Supported formats include image formats supported by imagemagick
+    #[structopt(short, long, default_value = "avif")]
+    pub format: String,
 
     //// Read-only; disables modification/deletion of files
     #[structopt(long)]
@@ -40,7 +36,7 @@ pub struct Config {
 
     //// Disable thumbnails
     #[structopt(long, short)]
-    pub no_thumbs: bool
+    pub no_thumbs: bool,
 }
 
 lazy_static! {
