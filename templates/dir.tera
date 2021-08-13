@@ -9,30 +9,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+
     <link href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAGFBMVEUAAACAgIDAwMAAAAD//////wAAAP+AgACyGYBKAAAAAXRSTlMAQObYZgAAAAFiS0dEBI9o2VEAAAAHdElNRQfiBhgXAzXpQrjsAAAArklEQVQoz3WQQQ7CIBBF4QbS4gEsYV8DHkAc3Rev0Buw8PoOQ9KZjPGlm76+hE+N+cdJvdughC+r+OqcAxCJB8CHE1vqBiASH6OHFycj2NEE50g8KdgxybBSMQI0oTYqKOim3EjcR9BNQGGnhSmJVh08PG45R+aScctUmS3jXFlEXdRroKHMnOgqzNxUQcNk8W7jd/CQ1IUcklSx6KImo45pRh1D4iPowiTBan74AnnnVMHA9EjhAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDE4LTA2LTI0VDIzOjAzOjUzLTA0OjAwyUvdTwAAACV0RVh0ZGF0ZTptb2RpZnkAMjAxOC0wNi0yNFQyMzowMzo1My0wNDowMLgWZfMAAAAASUVORK5CYII=" rel="icon" type="image/png" />
 
     <style type="text/css">
-    .arrow {
-        height: 22px;
-        width: 22px;
-        text-align: center;
-        font-size: 1.15em;
-        font-weight: bold;
-        padding-left: .5em;
-        filter: invert(100%) !important;
-        padding-bottom: 4px;
-    }
-    .arrow-selected {
-        background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0nMS4wJyBlbmNvZGluZz0ndXRmLTgnPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEyOSAxMjkiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAxMjkgMTI5Ij4KICA8Zz4KICAgIDxwYXRoIGQ9Im00MC40LDEyMS4zYy0wLjgsMC44LTEuOCwxLjItMi45LDEuMnMtMi4xLTAuNC0yLjktMS4yYy0xLjYtMS42LTEuNi00LjIgMC01LjhsNTEtNTEtNTEtNTFjLTEuNi0xLjYtMS42LTQuMiAwLTUuOCAxLjYtMS42IDQuMi0xLjYgNS44LDBsNTMuOSw1My45YzEuNiwxLjYgMS42LDQuMiAwLDUuOGwtNTMuOSw1My45eiIvPgogIDwvZz4KPC9zdmc+Cg==");
-        height: inherit;
-    }
-    .icon-folder {
-        height: 27px;
-        width: 27px;
-        background-repeat: no-repeat;
-        background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAACBVGfHAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAIVBMVEUAAACZmQAICAj4+Pj//5n/+/DMzGYAAAD/zJkzMwD///9AsZvJAAAAAXRSTlMAQObYZgAAAAFiS0dECmjQ9FYAAAAHdElNRQfiBhgXARMJeV+TAAAAuElEQVQoz62QMQ7CQBADLyVlQKLmD/ABpC38AF5AgZSOR7i4kpbf4t3b4xLR4i6+sb1KKb+apf3qe7qY2fU0jIO5BjLdwhjI8dE0Nylx3uiZFS4YjfduAJADLCvCCNrKoAL2JajPyG0IZ9IQGzP1S2iSMdsMZgbshOIVsRsGs7WidzAm1IGaEfgNIugRxIJblXUQ/my1dXgaUaDLZDDm5HgiIvGqQyw7GJVOIO7oPzm1lN17o1f5gz69jIC7vf9PIQAAACV0RVh0ZGF0ZTpjcmVhdGUAMjAxOC0wNi0yNFQyMzowMToxOS0wNDowMO2EXMYAAAAldEVYdGRhdGU6bW9kaWZ5ADIwMTgtMDYtMjRUMjM6MDE6MTktMDQ6MDCc2eR6AAAAAElFTkSuQmCC");
+    body {
+        background-color: #2d3436;
     }
     </style>
+
     <script type="text/javascript">
     const imgModal = document.getElementById("img_modal");
     const imgTypes = ['.jpg', '.jpeg', '.jpe', '.png', '.gif', '.avif', '.webp', '.heic'];
@@ -80,7 +66,7 @@
         {% for folder in folders %}
             <div class="col-lg-3 dir">
                 {% if folder.thumb %} <a href="{{base_path}}{{folder.path}}"><img src="{{base_path}}{{folder.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{base_path}}{{folder.path}}" class="icon-folder"><strong>{{folder.name}}</strong></a>
+                <a href="{{base_path}}{{folder.path}}"><i class="bi bi-folder"></i> <strong>{{folder.name}}</strong></a>
             </div>
         {% endfor %}
         {% for file in files %}

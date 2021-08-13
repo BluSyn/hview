@@ -118,9 +118,10 @@ pub fn get_dir_template(dir: &PathBuf) -> Result<TemplateDir, TemplateError> {
         // Folders display a random thumbnail from all their files (if available)
         // Files return their individual thumbnail (if available)
         if path.is_dir() {
-            details.thumb = match get_random_thumb(&path.join(".th")) {
-                Some(th) => Some(th.strip_prefix(&basedir).unwrap().display().to_string()),
-                None => None,
+            details.thumb = if let Some(th) = get_random_thumb(&path.join(".th")) {
+                Some(th.strip_prefix(&basedir).unwrap().display().to_string())
+            } else {
+                None
             };
             page.folders.push(details);
         } else {
