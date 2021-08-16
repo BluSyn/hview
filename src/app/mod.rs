@@ -1,4 +1,5 @@
 use std::fs::metadata;
+use std::time::Instant;
 
 use rocket::get;
 use rocket::response::{status::NotFound, NamedFile};
@@ -30,8 +31,11 @@ pub fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static s
                 }
             }
 
+            // profile this function call
+            let now = Instant::now();
             match get_dir_template(&path) {
                 Ok(page) => {
+                    println!("Time elapsed {}ms", now.elapsed().as_micros());
                     response.tmpl = Some(Template::render("dir", page));
                     Ok(response)
                 }
