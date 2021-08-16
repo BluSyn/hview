@@ -15,7 +15,29 @@
 
     <style type="text/css">
     body {
-        background-color: #2d3436;
+      color: #dfe6e9;
+      background-color: #2d3436;
+      font-size: 1.5em;
+      font-family: Helvetica, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+    a {
+      color: #dfe6e9;
+      text-decoration: none;
+      background-color: transparent !important;
+      outline: 0;
+    }
+
+    h1 {
+      display: inline-block;
+      margin: 20px 0;
+      word-wrap: break-word;
+      width: 80%;
+      margin-bottom: 28px;
+      cursor: pointer;
+    }
+    h1 > span:hover {
+      color: #f1c40f;
     }
     </style>
 
@@ -51,30 +73,38 @@
     const showVid = function(file) {
         vidModal.style.display = "block";
         vidModal.firstChild.src = file;
+    };
+
+    const setTitle = function(title) {
+        title.innerHTML = '<span>' + title.innerText.split('/').join('/</span><span>') + '</span>'
+    };
+
+    window.onload = function() {
+        const title = document.getElementById('title');
+        setTitle(title);
     }
     </script>
 </head>
-
 <body>
-    <h1>{{title}}</h1>
-
     <div id="img_modal" class="modal hidden"><img draggable="false" /></div>
     <div id="vid_modal" class="modal hidden"><video controls></video></div>
 
     <div class="container">
+        <h1 id="title">{{title}}</h1>
+
         <div class="row gx-5">
         {% for folder in folders %}
-            <div class="col-lg-3 dir">
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 dir">
                 {% if folder.thumb %} <a href="{{base_path}}{{folder.path}}"><img src="{{base_path}}{{folder.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{base_path}}{{folder.path}}"><i class="bi bi-folder"></i> <strong>{{folder.name}}</strong></a>
+                <a href="{{base_path}}{{folder.path}}"><i class="bi bi-folder-fill text-info"></i> <strong>{{folder.name}}</strong></a>
             </div>
         {% endfor %}
         {% for file in files %}
-            <div class="col-lg-3 file">
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 file">
                 {% if file.thumb %} <a href="{{base_path}}{{file.path}}"><img src="{{base_path}}{{file.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{base_path}}{{file.path}}"><strong>{{file.name}}</strong></a><br />
-                <small>{{file.size}} B</small><br />
-                <time datetime="{{file.date_string}}">{{file.date_string}}</time>
+                <a href="{{base_path}}{{file.path}}"><i class="bi bi-file-richtext text-success"></i> <strong>{{file.name}}</strong></a><br />
+                <small>{{file.size}} B</small> /
+                <small><time datetime="{{file.date_string}}">{{file.date_string}}</time></small>
             </div>
         {% endfor %}
         </div>

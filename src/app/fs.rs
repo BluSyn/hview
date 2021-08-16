@@ -100,11 +100,7 @@ pub fn get_dir_template(dir: &PathBuf) -> Result<TemplateDir, TemplateError> {
         };
 
         details.date_string = if let Some(ts) = details.date {
-            Some(
-                Utc.timestamp(ts as i64, 0)
-                    .format("%Y-%m-%d %H:%M:%S")
-                    .to_string(),
-            )
+            Some(Utc.timestamp(ts as i64, 0).format("%Y-%m-%d").to_string())
         } else {
             None
         };
