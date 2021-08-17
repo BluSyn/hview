@@ -2,10 +2,11 @@
  * "hrocket" -> "hview" rocket customizations
  * Includes custom responder, pathbuf, and other work arounds
  */
+use rocket::fs::NamedFile;
 use rocket::http::Status;
 use rocket::request::Request;
-use rocket::response::{NamedFile, Responder, Result as ResponseResult};
-use rocket_contrib::templates::Template;
+use rocket::response::{Responder, Result as ResponseResult};
+use rocket_dyn_templates::Template;
 
 pub struct CustomResponder {
     pub file: Option<NamedFile>,
@@ -25,8 +26,8 @@ impl CustomResponder {
 // If path correspondes to static file, return raw static file
 // otherwise return template if defined
 // otherwise return 404
-impl<'a> Responder<'a> for CustomResponder {
-    fn respond_to(self, req: &Request) -> ResponseResult<'a> {
+impl<'r> Responder<'r, 'static> for CustomResponder {
+    fn respond_to(self, req: &'r Request) -> ResponseResult<'static> {
         if self.file.is_some() {
             return self.file.unwrap().respond_to(&req);
         } else if self.tmpl.is_some() {

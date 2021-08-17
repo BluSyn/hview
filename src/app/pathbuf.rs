@@ -12,7 +12,7 @@
 * https://github.com/SergioBenitez/Rocket/issues/560
 *
 */
-use rocket::http::uri::{SegmentError, Segments, Uri};
+use rocket::http::uri::{error::PathError, fmt::Path, Segments};
 use rocket::request::FromSegments;
 use std::path::PathBuf;
 
@@ -21,24 +21,14 @@ pub struct CustomPathBuf {
 }
 
 impl CustomPathBuf {
-    pub fn new() -> Self {
-        Self {
-            path: PathBuf::new(),
-        }
+    pub fn from(path: PathBuf) -> Self {
+        Self { path }
     }
 
-    pub fn from(path: &str) -> Self {
+    pub fn from_str(path: &str) -> Self {
         Self {
             path: PathBuf::from(path),
         }
-    }
-
-    pub fn push(&mut self, suffix: &str) {
-        self.path.push(suffix);
-    }
-
-    pub fn pop(&mut self) {
-        self.path.pop();
     }
 
     pub fn path(&self) -> PathBuf {
@@ -46,35 +36,14 @@ impl CustomPathBuf {
     }
 }
 
-impl<'a> FromSegments<'a> for CustomPathBuf {
-    type Error = SegmentError;
+impl FromSegments<'_> for CustomPathBuf {
+    type Error = PathError;
 
-    fn from_segments(segments: Segments<'a>) -> Result<CustomPathBuf, SegmentError> {
-        let mut path = CustomPathBuf::new();
-
-        for segment in segments {
-            let decoded =
-                Uri::percent_decode(segment.as_bytes()).map_err(|e| SegmentError::Utf8(e))?;
-
-            if decoded == ".." {
-                path.pop();
-            } else if decoded.starts_with('*') {
-                return Err(SegmentError::BadStart('*'));
-            } else if decoded.ends_with(':') {
-                return Err(SegmentError::BadEnd(':'));
-            } else if decoded.ends_with('>') {
-                return Err(SegmentError::BadEnd('>'));
-            } else if decoded.ends_with('<') {
-                return Err(SegmentError::BadEnd('<'));
-            } else if decoded.contains('/') {
-                return Err(SegmentError::BadChar('/'));
-            } else if cfg!(windows) && decoded.contains('\\') {
-                return Err(SegmentError::BadChar('\\'));
-            } else {
-                path.push(&*decoded)
-            }
+    fn from_segments(segments: Segments<'_, Path>) -> Result<Self, Self::Error> {
+        // Convert PathBuf -> CustomPathBuf
+        match segments.to_path_buf(true) {
+            Ok(path) => Ok(CustomPathBuf::from(path)),
+            Err(e) => Err(e),
         }
-
-        Ok(path)
     }
 }

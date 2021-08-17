@@ -14,7 +14,7 @@ pub struct Config {
     pub basepath: String,
 
     //// Host to listen to
-    #[structopt(long, short, default_value = "localhost")]
+    #[structopt(long, short, default_value = "127.0.0.1")]
     pub host: String,
 
     //// Port to listen to
