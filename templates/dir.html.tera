@@ -80,14 +80,22 @@
 
         <div class="row gx-5">
         {% for folder in folders %}
-            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 dir">
-                {% if folder.thumb %} <a href="{{base_path | safe}}{{folder.path | urlencode}}" class="folder"><img src="{{base_path | safe}}{{folder.thumb | urlencode}}" loading="lazy" /></a><br /> {% endif %}
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 dir text-break">
+                {% if folder.thumb %}
+                    <a href="{{base_path | safe}}{{folder.path | urlencode}}" class="folder">
+                        <img src="{{base_path | safe}}{{folder.thumb | urlencode}}" loading="lazy" class="pb-3" />
+                    </a><br />
+                {% endif %}
                 <a href="{{base_path | safe}}{{folder.path | urlencode}}" class="folder"><i class="bi bi-folder-fill text-info"></i> <strong>{{folder.name}}</strong></a>
             </div>
         {% endfor %}
         {% for file in files %}
-            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 file">
-                {% if file.thumb %} <a href="{{base_path | safe}}{{file.path | urlencode}}" class="file"><img src="{{base_path | safe}}{{file.thumb | urlencode}}" loading="lazy" /></a><br /> {% endif %}
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 file text-nowrap overflow-hidden fs-5">
+                {% if file.thumb %}
+                    <a href="{{base_path | safe}}{{file.path | urlencode}}" class="file">
+                        <img src="{{base_path | safe}}{{file.thumb | urlencode}}" loading="lazy" class="pb-3" />
+                    </a><br />
+                {% endif %}
                 <a href="{{base_path | safe}}{{file.path | urlencode}}" class="file file-link"><i class="bi bi-file-richtext text-success"></i> <strong>{{file.name}}</strong></a><br />
                 <small>{{file.size}} B</small> /
                 <small><time datetime="{{file.date_string}}">{{file.date_string}}</time></small>
