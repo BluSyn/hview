@@ -39,55 +39,41 @@
     h1 > span:hover {
       color: #f1c40f;
     }
-    </style>
 
-    <script type="text/javascript">
-    const imgModal = document.getElementById("img_modal");
-    const imgTypes = ['.jpg', '.jpeg', '.jpe', '.png', '.gif', '.avif', '.webp', '.heic'];
-    const isImg = src => src && picTypes.find(type => src.toLocaleLowerCase().includes(type));
-    const vidModal = document.getElementById("vid_modal");
-    const videosTypes = ['.mp4', '.webm', '.mts', '.mov', '.ogv', '.ogg', '.mp3', '.flac', '.wav'];
-    const isVideo = src => src && videosTypes.find(type => src.toLocaleLowerCase().includes(type));
-
-    const gotoFile = function(e) {
-        const file = e.pathname;
-        if (isImg(file)) {
-            showImg(file);
-            return false;
-        }
-        if (isVideo(file)) {
-            showVideo(file);
-            return false;
-        }
-
-        return true;
-    };
-    const gotoFolder = function(e) {
-        return true;
-    };
-
-    const showImg = function(file) {
-        imgModal.style.display = "block";
-        imgModal.firstChild.src = file;
-    };
-    const showVid = function(file) {
-        vidModal.style.display = "block";
-        vidModal.firstChild.src = file;
-    };
-
-    const setTitle = function(title) {
-        title.innerHTML = '<span>' + title.innerText.split('/').join('/</span><span>') + '</span>'
-    };
-
-    window.onload = function() {
-        const title = document.getElementById('title');
-        setTitle(title);
+    .modal-content {
+        background-color: transparent;
     }
-    </script>
+    .modal-img {
+        display: grid;
+        height: 100%;
+        padding: 0;
+    }
+    .modal-img > img {
+        max-width: 100%;
+        max-height: 95vh;
+        margin: auto;
+    }
+    </style>
 </head>
 <body>
-    <div id="img_modal" class="modal hidden"><img draggable="false" /></div>
-    <div id="vid_modal" class="modal hidden"><video controls></video></div>
+    <div class="modal fade" id="img_modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-body modal-img">
+              <img draggable="false" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="vid_modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-body modal-vid">
+              <video controls />
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="container">
         <h1 id="title">{{title}}</h1>
@@ -95,19 +81,104 @@
         <div class="row gx-5">
         {% for folder in folders %}
             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 dir">
-                {% if folder.thumb %} <a href="{{base_path}}{{folder.path}}"><img src="{{base_path}}{{folder.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{base_path}}{{folder.path}}"><i class="bi bi-folder-fill text-info"></i> <strong>{{folder.name}}</strong></a>
+                {% if folder.thumb %} <a href="{{base_path}}{{folder.path}}" class="folder"><img src="{{base_path}}{{folder.thumb}}" loading="lazy" /></a><br /> {% endif %}
+                <a href="{{base_path}}{{folder.path}}" class="folder"><i class="bi bi-folder-fill text-info"></i> <strong>{{folder.name}}</strong></a>
             </div>
         {% endfor %}
         {% for file in files %}
             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 file">
-                {% if file.thumb %} <a href="{{base_path}}{{file.path}}"><img src="{{base_path}}{{file.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{base_path}}{{file.path}}"><i class="bi bi-file-richtext text-success"></i> <strong>{{file.name}}</strong></a><br />
+                {% if file.thumb %} <a href="{{base_path}}{{file.path}}" class="file"><img src="{{base_path}}{{file.thumb}}" loading="lazy" /></a><br /> {% endif %}
+                <a href="{{base_path}}{{file.path}}" class="file file-link"><i class="bi bi-file-richtext text-success"></i> <strong>{{file.name}}</strong></a><br />
                 <small>{{file.size}} B</small> /
                 <small><time datetime="{{file.date_string}}">{{file.date_string}}</time></small>
             </div>
         {% endfor %}
         </div>
     </div>
+<script type="text/javascript">
+(function() {
+const imgModal = new bootstrap.Modal(document.getElementById("img_modal"));
+const imgTypes = ['.jpg', '.jpeg', '.jpe', '.png', '.gif', '.avif', '.webp', '.heic'];
+const isImg = src => src && imgTypes.find(type => src.toLocaleLowerCase().includes(type));
+
+const vidModal = document.getElementById("vid_modal");
+const vidTypes = ['.mp4', '.webm', '.mts', '.mov', '.ogv', '.ogg', '.mp3', '.flac', '.wav'];
+const isVideo = src => src && vidTypes.find(type => src.toLocaleLowerCase().includes(type));
+
+// All files that can be displayed in modal
+const allLinks = document.querySelectorAll('a.file-link');
+const files = Array.from(allLinks).map(el => el.href)
+    .filter(f => isImg(f) || isVideo(f));
+let fileIndex = 0;
+
+const gotoFile = function(e) {
+    e.preventDefault();
+    let href = e.srcElement.parentNode.href;
+    let index = files.findIndex(f => f === href);
+
+    // Show in modal, or continue to link directly
+    return index ? showFile(index) : true;
+};
+const showFile = function(index) {
+    if (!files[index])
+        return true;
+
+    fileIndex = index;
+    const file = files[index];
+    if (isImg(file)) {
+        document.querySelector("#img_modal img").src = file;
+        imgModal.show();
+        return false;
+    } else if (isVideo(file)) {
+        document.querySelector("#vid_modal img").src = file;
+        vidModal.show();
+        return false;
+    }
+
+    return true;
+};
+
+let showNextFile = function() {
+    let nextIndex = files.length === (fileIndex + 1) ?
+        0 : (fileIndex + 1);
+    showFile(nextIndex);
+};
+
+let showPrevFile = function() {
+    let prevIndex = fileIndex === 0 ?
+        files.length - 1 : fileIndex - 1;
+    showFile(prevIndex);
+};
+
+const keyHandler = function(e) {
+    switch (e.code) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        return e.preventDefault() || showPrevFile();
+
+      case 'Enter':
+      case 'Tab':
+      case 'ArrowRight':
+      case 'ArrowDown':
+        return e.preventDefault() || showNextFile();
+    }
+};
+
+const gotoFolder = function(e) {
+    e.preventDefault();
+    console.log('Loading folder...', e);
+    return true;
+};
+
+const setTitle = function(title) {
+    title.innerHTML = '<span>' + title.innerText.split('/').join('/</span><span>') + '</span>'
+};
+
+document.querySelectorAll('a.file').forEach(f => f.addEventListener('click', gotoFile));
+document.querySelectorAll('a.folder').forEach(f => f.addEventListener('click', gotoFolder));
+document.body.addEventListener('keydown', keyHandler);
+
+})();
+</script>
 </body>
 </html>
