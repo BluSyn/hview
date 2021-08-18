@@ -76,7 +76,7 @@
     </div>
 
     <div class="container">
-        <h1 id="title">{{title}}</h1>
+        <h1 id="title">{{title}}/</h1>
 
         <div class="row gx-5">
         {% for folder in folders %}
@@ -97,6 +97,7 @@
     </div>
 <script type="text/javascript">
 (function() {
+const BASEPATH = '{{base_path | safe}}';
 const imgModal = new bootstrap.Modal(document.getElementById("img_modal"));
 const imgTypes = ['.jpg', '.jpeg', '.jpe', '.png', '.gif', '.avif', '.webp', '.heic'];
 const isImg = src => src && imgTypes.find(type => src.toLocaleLowerCase().includes(type));
@@ -137,6 +138,12 @@ const showFile = function(index) {
 
     return true;
 };
+const titleNav = function(e) {
+    const text = Array.from(document.getElementById('title').childNodes).map(i => i.innerText);
+    const i = text.findIndex(s => s === e.target.innerText);
+    const path = text.slice(0, i + 1).join('');
+    window.location.href = BASEPATH + encodeURI(path);
+};
 
 let showNextFile = function() {
     let nextIndex = files.length === (fileIndex + 1) ?
@@ -165,7 +172,7 @@ const keyHandler = function(e) {
 };
 
 const gotoFolder = function(e) {
-    e.preventDefault();
+    // e.preventDefault();
     console.log('Loading folder...', e);
     return true;
 };
@@ -174,8 +181,12 @@ const setTitle = function(title) {
     title.innerHTML = '<span>' + title.innerText.split('/').join('/</span><span>') + '</span>'
 };
 
+setTitle(document.getElementById('title'));
+
 document.querySelectorAll('a.file').forEach(f => f.addEventListener('click', gotoFile));
 document.querySelectorAll('a.folder').forEach(f => f.addEventListener('click', gotoFolder));
+document.querySelectorAll('#title > span').forEach(f => f.addEventListener('click', titleNav));
+
 document.body.addEventListener('keydown', keyHandler);
 
 })();
