@@ -66,9 +66,10 @@
     }
     #media_img > img,
     #media_vid > video {
-        max-width: 100%;
-        max-height: 95vh;
+        width: 100%;
+        max-height: 96vh;
         margin: auto;
+        object-fit: contain;
     }
     </style>
 </head>
