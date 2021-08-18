@@ -159,11 +159,13 @@ const showFile = function(index) {
         document.getElementById('media_img').className = '';
         document.getElementById('media_vid').className = 'visually-hidden';
         document.querySelector('#media_img img').src = file;
+        document.querySelector('#media_vid video').src = '';
         mediaModal.show();
         return false;
     } else if (isVideo(file)) {
         document.getElementById('media_img').className = 'visually-hidden';
         document.getElementById('media_vid').className = '';
+        document.querySelector('#media_img img').src = '';
         document.querySelector("#media_vid video").src = file;
         mediaModal.show();
         return false;
