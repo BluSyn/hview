@@ -77,10 +77,10 @@
       <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
           <div class="modal-body">
-              <div id="media_img" class="hidden">
+              <div id="media_img" class="visually-hidden">
                   <img draggable="false" />
               </div>
-              <div id="media_vid" class="hidden">
+              <div id="media_vid" class="visually-hidden">
                   <video controls />
               </div>
           </div>
@@ -157,12 +157,12 @@ const showFile = function(index) {
     const file = files[index];
     if (isImg(file)) {
         document.getElementById('media_img').className = '';
-        document.getElementById('media_vid').className = 'hidden';
+        document.getElementById('media_vid').className = 'visually-hidden';
         document.querySelector('#media_img img').src = file;
         mediaModal.show();
         return false;
     } else if (isVideo(file)) {
-        document.getElementById('media_img').className = 'hidden';
+        document.getElementById('media_img').className = 'visually-hidden';
         document.getElementById('media_vid').className = '';
         document.querySelector("#media_vid video").src = file;
         mediaModal.show();
