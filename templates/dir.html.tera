@@ -39,16 +39,33 @@
     h1 > span:hover {
       color: #f1c40f;
     }
+    img.thumb {
+        width: 230px;
+        height: 310px;
+    }
+    span.thumb {
+        width: 230px;
+        height: 300px;
+        text-align: center;
+        display: inline-block;
+        background-color: #464646;
+    }
+    span.thumb > svg {
+        width: 150px;
+        height: 150px;
+    }
 
     .modal-content {
         background-color: transparent;
     }
-    .modal-img {
+    #media_img,
+    #media_vid {
         display: grid;
         height: 100%;
         padding: 0;
     }
-    .modal-img > img {
+    #media_img > img,
+    #media_vid > video {
         max-width: 100%;
         max-height: 95vh;
         margin: auto;
@@ -56,36 +73,38 @@
     </style>
 </head>
 <body>
-    <div class="modal fade" id="img_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="media_modal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
-          <div class="modal-body modal-img">
-              <img draggable="false" />
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="modal fade" id="vid_modal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-          <div class="modal-body modal-vid">
-              <video controls />
+          <div class="modal-body">
+              <div id="media_img" class="hidden">
+                  <img draggable="false" />
+              </div>
+              <div id="media_vid" class="hidden">
+                  <video controls />
+              </div>
           </div>
         </div>
       </div>
     </div>
 
     <div class="container">
-        <h1 id="title">{{title}}/</h1>
+        <h1 id="title">{{base_path | safe}}{% if title %}{{ title }}/{% endif %}</h1>
 
         <div class="row gx-5">
         {% for folder in folders %}
             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 dir text-break">
-                {% if folder.thumb %}
-                    <a href="{{base_path | safe}}{{folder.path | urlencode}}" class="folder">
-                        <img src="{{base_path | safe}}{{folder.thumb | urlencode}}" loading="lazy" class="pb-3" />
-                    </a><br />
-                {% endif %}
+                <a href="{{base_path | safe}}{{folder.path | urlencode}}" class="folder">
+                    {% if folder.thumb %}
+                    <img src="{{base_path | safe}}{{folder.thumb | urlencode}}" loading="lazy" class="thumb pb-3" />
+                    {% else %}
+                    <span class="thumb mb-3 pt-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                          <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9zM2.5 3a.5.5 0 0 0-.5.5V6h12v-.5a.5.5 0 0 0-.5-.5H9c-.964 0-1.71-.629-2.174-1.154C6.374 3.334 5.82 3 5.264 3H2.5zM14 7H2v5.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V7z"/>
+                        </svg>
+                    </span>
+                    {% endif %}
+                </a><br />
                 <a href="{{base_path | safe}}{{folder.path | urlencode}}" class="folder"><i class="bi bi-folder-fill text-info"></i> <strong>{{folder.name}}</strong></a>
             </div>
         {% endfor %}
@@ -93,7 +112,7 @@
             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 file text-nowrap overflow-hidden fs-5">
                 {% if file.thumb %}
                     <a href="{{base_path | safe}}{{file.path | urlencode}}" class="file">
-                        <img src="{{base_path | safe}}{{file.thumb | urlencode}}" loading="lazy" class="pb-3" />
+                        <img src="{{base_path | safe}}{{file.thumb | urlencode}}" loading="lazy" class="thumb pb-3" />
                     </a><br />
                 {% endif %}
                 <a href="{{base_path | safe}}{{file.path | urlencode}}" class="file file-link"><i class="bi bi-file-richtext text-success"></i> <strong>{{file.name}}</strong></a><br />
@@ -106,11 +125,11 @@
 <script type="text/javascript">
 (function() {
 const BASEPATH = '{{base_path | safe}}';
-const imgModal = new bootstrap.Modal(document.getElementById("img_modal"));
+const mediaModal = new bootstrap.Modal(document.getElementById('media_modal'));
+
 const imgTypes = ['.jpg', '.jpeg', '.jpe', '.png', '.gif', '.avif', '.webp', '.heic'];
 const isImg = src => src && imgTypes.find(type => src.toLocaleLowerCase().includes(type));
 
-const vidModal = document.getElementById("vid_modal");
 const vidTypes = ['.mp4', '.webm', '.mts', '.mov', '.ogv', '.ogg', '.mp3', '.flac', '.wav'];
 const isVideo = src => src && vidTypes.find(type => src.toLocaleLowerCase().includes(type));
 
@@ -137,12 +156,16 @@ const showFile = function(index) {
     fileIndex = index;
     const file = files[index];
     if (isImg(file)) {
-        document.querySelector("#img_modal img").src = file;
-        imgModal.show();
+        document.getElementById('media_img').className = '';
+        document.getElementById('media_vid').className = 'hidden';
+        document.querySelector('#media_img img').src = file;
+        mediaModal.show();
         return false;
     } else if (isVideo(file)) {
-        document.querySelector("#vid_modal img").src = file;
-        vidModal.show();
+        document.getElementById('media_img').className = 'hidden';
+        document.getElementById('media_vid').className = '';
+        document.querySelector("#media_vid video").src = file;
+        mediaModal.show();
         return false;
     }
 
@@ -152,7 +175,7 @@ const titleNav = function(e) {
     const text = Array.from(document.getElementById('title').childNodes).map(i => i.innerText);
     const i = text.findIndex(s => s === e.target.innerText);
     const path = text.slice(0, i + 1).join('');
-    window.location.href = BASEPATH + encodeURI(path);
+    window.location.href = encodeURI(path);
 };
 
 let showNextFile = function() {
