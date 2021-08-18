@@ -81,14 +81,14 @@
         <div class="row gx-5">
         {% for folder in folders %}
             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 dir">
-                {% if folder.thumb %} <a href="{{base_path}}{{folder.path}}" class="folder"><img src="{{base_path}}{{folder.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{base_path}}{{folder.path}}" class="folder"><i class="bi bi-folder-fill text-info"></i> <strong>{{folder.name}}</strong></a>
+                {% if folder.thumb %} <a href="{{base_path | safe}}{{folder.path | urlencode}}" class="folder"><img src="{{base_path | safe}}{{folder.thumb | urlencode}}" loading="lazy" /></a><br /> {% endif %}
+                <a href="{{base_path | safe}}{{folder.path | urlencode}}" class="folder"><i class="bi bi-folder-fill text-info"></i> <strong>{{folder.name}}</strong></a>
             </div>
         {% endfor %}
         {% for file in files %}
             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 file">
-                {% if file.thumb %} <a href="{{base_path}}{{file.path}}" class="file"><img src="{{base_path}}{{file.thumb}}" loading="lazy" /></a><br /> {% endif %}
-                <a href="{{base_path}}{{file.path}}" class="file file-link"><i class="bi bi-file-richtext text-success"></i> <strong>{{file.name}}</strong></a><br />
+                {% if file.thumb %} <a href="{{base_path | safe}}{{file.path | urlencode}}" class="file"><img src="{{base_path | safe}}{{file.thumb | urlencode}}" loading="lazy" /></a><br /> {% endif %}
+                <a href="{{base_path | safe}}{{file.path | urlencode}}" class="file file-link"><i class="bi bi-file-richtext text-success"></i> <strong>{{file.name}}</strong></a><br />
                 <small>{{file.size}} B</small> /
                 <small><time datetime="{{file.date_string}}">{{file.date_string}}</time></small>
             </div>
@@ -113,12 +113,14 @@ const files = Array.from(allLinks).map(el => el.href)
 let fileIndex = 0;
 
 const gotoFile = function(e) {
-    e.preventDefault();
     let href = e.srcElement.parentNode.href;
     let index = files.findIndex(f => f === href);
 
-    // Show in modal, or continue to link directly
-    return index ? showFile(index) : true;
+    if (index === -1)
+        return true;
+
+    e.preventDefault();
+    return showFile(index);
 };
 const showFile = function(index) {
     if (!files[index])
