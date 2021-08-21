@@ -1,0 +1,8 @@
+[package]
+name = "hview-front"
+version = "0.1.0"
+authors = ["Steven Bower <bowerblu@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+yew = "0.18"
