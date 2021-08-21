@@ -4,12 +4,12 @@ use thiserror::Error;
 
 use chrono::{TimeZone, Utc};
 use rand::seq::IteratorRandom;
-use serde::{Deserialize, Serialize};
+use rocket::serde::{Deserialize, Serialize};
 
 use crate::config::{BASEPATH, CFG, DIR, THUMB_FORMAT};
 
 #[derive(Error, Debug)]
-pub enum TemplateError {
+pub enum DirError {
     #[error("Directory not found")]
     NotFound,
 
@@ -18,7 +18,7 @@ pub enum TemplateError {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct TemplateEntry {
+struct DirEntry {
     name: Option<String>,
     path: Option<String>,
     size: Option<u64>,
@@ -28,7 +28,7 @@ struct TemplateEntry {
     ext: Option<String>,
 }
 
-impl TemplateEntry {
+impl DirEntry {
     fn new() -> Self {
         Self {
             name: None,
@@ -43,15 +43,15 @@ impl TemplateEntry {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct TemplateDir {
+pub struct Dir {
     title: String,
     base_path: &'static str,
     read_only: bool,
-    files: Vec<TemplateEntry>,
-    folders: Vec<TemplateEntry>,
+    files: Vec<DirEntry>,
+    folders: Vec<DirEntry>,
 }
 
-impl TemplateDir {
+impl Dir {
     fn new() -> Self {
         Self {
             title: String::from(""),
@@ -63,13 +63,13 @@ impl TemplateDir {
     }
 }
 
-// Load DIR details into TemplateDir struct
-pub fn get_dir_template(dir: &PathBuf) -> Result<TemplateDir, TemplateError> {
+// Load DIR details into Dir struct
+pub fn get_dir(dir: &PathBuf) -> Result<Dir, DirError> {
     if !dir.is_dir() {
-        return Err(TemplateError::NotFound);
+        return Err(DirError::NotFound);
     }
 
-    let mut page = TemplateDir::new();
+    let mut page = Dir::new();
     let basedir = DIR.as_path();
     let thpath = dir.join(".th");
     page.title = dir.strip_prefix(&basedir).unwrap().display().to_string();
@@ -84,7 +84,7 @@ pub fn get_dir_template(dir: &PathBuf) -> Result<TemplateDir, TemplateError> {
         }
 
         let meta = entry.metadata().unwrap();
-        let mut details = TemplateEntry::new();
+        let mut details = DirEntry::new();
 
         details.name = entry.file_name().into_string().ok();
         details.path = Some(path.strip_prefix(&basedir).unwrap().display().to_string());

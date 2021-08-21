@@ -2,22 +2,23 @@
  * "hrocket" -> "hview" rocket customizations
  * Includes custom responder, pathbuf, and other work arounds
  */
+use crate::app::fs::Dir;
 use rocket::fs::NamedFile;
 use rocket::http::Status;
 use rocket::request::Request;
 use rocket::response::{Responder, Result as ResponseResult};
-use rocket_dyn_templates::Template;
+use rocket::serde::json::Json;
 
 pub struct CustomResponder {
     pub file: Option<NamedFile>,
-    pub tmpl: Option<Template>,
+    pub dir: Option<Json<Dir>>,
 }
 
 impl CustomResponder {
     pub fn new() -> Self {
         Self {
             file: None,
-            tmpl: None,
+            dir: None,
         }
     }
 }
@@ -30,8 +31,8 @@ impl<'r> Responder<'r, 'static> for CustomResponder {
     fn respond_to(self, req: &'r Request) -> ResponseResult<'static> {
         if self.file.is_some() {
             return self.file.unwrap().respond_to(&req);
-        } else if self.tmpl.is_some() {
-            return self.tmpl.unwrap().respond_to(&req);
+        } else if self.dir.is_some() {
+            return self.dir.unwrap().respond_to(&req);
         }
 
         Err(Status::NotFound)

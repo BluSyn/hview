@@ -3,7 +3,6 @@ extern crate rocket;
 
 use rocket::config::Config as RocketConfig;
 use rocket::routes;
-use rocket_dyn_templates::Template;
 use std::net::IpAddr;
 
 mod app;
@@ -21,7 +20,5 @@ fn rocket() -> _ {
         ))
         .merge(("port", CFG.port));
 
-    rocket::custom(conf)
-        .attach(Template::fairing())
-        .mount(*BASEPATH, routes![app::home, app::route])
+    rocket::custom(conf).mount(*BASEPATH, routes![app::home, app::route])
 }

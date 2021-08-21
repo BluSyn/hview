@@ -4,16 +4,15 @@ use std::time::Instant;
 use rocket::fs::NamedFile;
 use rocket::get;
 use rocket::response::status::NotFound;
-use rocket_dyn_templates::Template;
 
 mod fs;
 mod pathbuf;
 mod responder;
 
-use crate::config::DIR;
-use fs::get_dir_template;
+use crate::{app::fs::get_dir, config::DIR};
 use pathbuf::CustomPathBuf;
 use responder::CustomResponder;
+use rocket::serde::json::Json;
 
 #[get("/<file..>")]
 pub async fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'static str>> {
@@ -34,10 +33,10 @@ pub async fn route(file: CustomPathBuf) -> Result<CustomResponder, NotFound<&'st
 
             // profile this function call
             let now = Instant::now();
-            match get_dir_template(&path) {
-                Ok(page) => {
+            match get_dir(&path) {
+                Ok(dir) => {
                     println!("Time elapsed {}ms", now.elapsed().as_micros());
-                    response.tmpl = Some(Template::render("dir", page));
+                    response.dir = Some(Json(dir));
                     Ok(response)
                 }
                 Err(_) => Err(NotFound("Dir does not exist")),
