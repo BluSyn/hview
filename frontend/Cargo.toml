@@ -6,5 +6,7 @@ edition = "2018"
 
 [dependencies]
 yew = "0.18"
+yew-router = "0.14"
 serde = "1.0"
 anyhow = "1.0"
+url = "2.2.2"

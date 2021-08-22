@@ -1,82 +1,27 @@
 use anyhow::Error;
 use serde::Deserialize;
-use std::rc::Rc;
+use url::Url;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::ConsoleService;
+use yew::utils::document;
 use yew::Properties;
+use yew_router::prelude::*;
 
-enum EntryMsg {
-    Display,
-    // Delete
-    // Rename
+mod components;
+use crate::components::entry::{Entry, EntryProps};
+
+#[derive(Clone, Debug, Switch)]
+pub enum AppRoute {
+    #[to = "{*}"]
+    Entry(String),
 }
 
-#[derive(Properties, Deserialize, Debug, Clone, PartialEq)]
-struct EntryProps {
-    name: String,
-    path: String,
-    size: u64,
-    date: u64,
-    date_string: String,
-    thumb: Option<String>,
-    ext: Option<String>,
-}
-
-struct Entry {
-    props: EntryProps,
-    link: ComponentLink<Self>,
-}
-
-impl Component for Entry {
-    type Message = EntryMsg;
-    type Properties = EntryProps;
-
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { props, link }
+impl AppRoute {
+    pub fn into_router(self) -> Route {
+        Route::from(self)
     }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Self::Message::Display => true,
-        }
-    }
-
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
-
-    fn view(&self) -> Html {
-        let p = &self.props;
-        let thumb = if let Some(thumb) = &p.thumb {
-            html! {
-                <a href={ p.path.clone() } class="file">
-                    <img src={ thumb.clone() } loading="lazy" class="thumb pb-3" />
-                </a>
-            }
-        } else {
-            html! {}
-        };
-
-        html! {
-            <div>
-                { thumb }
-                <a href={ p.path.clone() } class="file file-link">
-                    <i class="bi bi-file-richtext text-success"></i>
-                    <strong>{ &p.name }</strong>
-                </a>
-                <br />
-                <small>{ &p.size }{ "B" }</small> { "/" }
-                <small><time datetime={ p.date_string.clone() }>{ &p.date_string }</time></small>
-            </div>
-        }
-    }
-}
-
-pub enum MediaType {
-    Image,
-    Video,
 }
 
 #[derive(Deserialize, Debug)]
@@ -114,7 +59,9 @@ impl Component for App {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             AppMsg::Init => {
-                self.task = self.fetch_page();
+                let current = document().url().unwrap();
+                let url = Url::parse(current.as_str()).unwrap();
+                self.task = self.fetch_page(url.path());
                 true
             }
             AppMsg::PageLoad(result) => match result {
@@ -143,27 +90,24 @@ impl Component for App {
     fn view(&self) -> Html {
         let content = if self.data.is_none() {
             html! {
-                <>
-                    <p>{ "Loading.." }</p>
-                </>
+                <p>{ "Loading.." }</p>
             }
         } else {
             let data = self.data.as_ref().unwrap();
             let folders = data.folders.iter().map(|e| {
                 html! {
-                    <Entry
-                    name={e.name.clone()}
-                    path={e.path.clone()}
-                    size={e.size.clone()}
-                    date={e.date.clone()}
-                    date_string={e.date_string.clone()}
-                    thumb={e.thumb.clone()}
-                    ext={e.ext.clone()} />
+                    <Entry with e.to_owned() />
+                }
+            });
+            let files = data.files.iter().map(|e| {
+                html! {
+                    <Entry with e.to_owned() />
                 }
             });
             html! {
                 <section>
                 { for folders }
+                { for files }
                 </section>
             }
         };
@@ -179,10 +123,8 @@ impl Component for App {
 }
 
 impl App {
-    fn fetch_page(&self) -> Option<FetchTask> {
-        let request = Request::get("http://localhost:8000/")
-            .header("Sec-Fetch-Mode", "no-cors")
-            .header("Sec-Fetch-Site", "cross-site")
+    fn fetch_page(&self, path: &str) -> Option<FetchTask> {
+        let request = Request::get(format!("http://localhost:8000/{}", path).as_str())
             .body(Nothing)
             .expect("Could not load from API");
         let callback =

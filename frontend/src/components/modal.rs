@@ -1,19 +1,42 @@
 use yew::prelude::*;
-use crate::MediaType;
+use yew::Properties;
 
-enum ModalMsg {
+#[derive(Clone, Debug, PartialEq)]
+pub enum MediaType {
+    Image,
+    Video,
+}
+
+pub enum ModalMsg {
     Show,
     Hide,
     Next,
-    Previous
-};
-struct ModalProps {
+    Previous,
+}
+
+#[derive(Properties, Debug, Clone, PartialEq)]
+pub struct ModalProps {
     src: String,
-    type: Mediatype
+    media: MediaType,
+}
+pub struct Modal {
+    pub link: ComponentLink<Self>,
 }
 impl Component for Modal {
     type Message = ModalMsg;
     type Properties = ModalProps;
+
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self { link }
+    }
+
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        true
+    }
+
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
+    }
 
     fn view(&self) -> Html {
         html! {
@@ -25,7 +48,7 @@ impl Component for Modal {
                       <img draggable="false" />
                   </div>
                   <div id="media_vid" class="visually-hidden">
-                      <video controls />
+                      <video controls=true />
                   </div>
               </div>
             </div>
