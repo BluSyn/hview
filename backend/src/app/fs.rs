@@ -19,11 +19,11 @@ pub enum DirError {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct DirEntry {
-    name: Option<String>,
-    path: Option<String>,
-    size: Option<u64>,
-    date: Option<u64>,
-    date_string: Option<String>,
+    name: String,
+    path: String,
+    size: u64,
+    date: u64,
+    date_string: String,
     thumb: Option<String>,
     ext: Option<String>,
 }
@@ -31,11 +31,11 @@ struct DirEntry {
 impl DirEntry {
     fn new() -> Self {
         Self {
-            name: None,
-            path: None,
-            size: None,
-            date: None,
-            date_string: None,
+            name: String::from(""),
+            path: String::from(""),
+            size: 0,
+            date: 0,
+            date_string: String::from(""),
             thumb: None,
             ext: None,
         }
@@ -86,23 +86,23 @@ pub fn get_dir(dir: &PathBuf) -> Result<Dir, DirError> {
         let meta = entry.metadata().unwrap();
         let mut details = DirEntry::new();
 
-        details.name = entry.file_name().into_string().ok();
-        details.path = Some(path.strip_prefix(&basedir).unwrap().display().to_string());
-        details.size = Some(meta.len());
+        details.name = entry.file_name().into_string().ok().unwrap();
+        details.path = path.strip_prefix(&basedir).unwrap().display().to_string();
+        details.size = meta.len();
         details.date = if let Ok(date) = meta.modified() {
-            Some(
-                date.duration_since(std::time::UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs(),
-            )
+            date.duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs()
         } else {
-            None
+            0
         };
 
-        details.date_string = if let Some(ts) = details.date {
-            Some(Utc.timestamp(ts as i64, 0).format("%Y-%m-%d").to_string())
+        details.date_string = if details.date > 0 {
+            Utc.timestamp(details.date as i64, 0)
+                .format("%Y-%m-%d")
+                .to_string()
         } else {
-            None
+            String::from("")
         };
 
         details.ext = if let Some(ext) = path.extension() {
