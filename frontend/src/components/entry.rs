@@ -1,4 +1,4 @@
-use crate::{AppMsg, SERVER_URL};
+use crate::{AppAnchor, AppRoute, SERVER_URL};
 use serde::Deserialize;
 use yew::prelude::*;
 use yew::Properties;
@@ -51,9 +51,9 @@ impl Component for Entry {
             let src = format!("{}{}", SERVER_URL, &thumb);
             html! {
             <>
-                <a href={ p.path.to_owned() } class="file">
+                <AppAnchor classes="file" route=AppRoute::Entry(p.path.to_owned())>
                     <img src={ src } loading="lazy" class="thumb pb-3" />
-                </a><br />
+                </AppAnchor><br />
             </>
             }
         } else {
@@ -63,10 +63,10 @@ impl Component for Entry {
         html! {
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 dir text-break">
                 { thumb }
-                <a href={ p.path.to_owned() } class="file file-link">
+                <AppAnchor classes="file file-link" route=AppRoute::Entry(p.path.to_owned())>
                     <i class="bi bi-file-richtext text-success"></i>
                     <strong>{" "}{ &p.name }</strong>
-                </a><br />
+                </AppAnchor><br />
                 <small>{ &p.size }{ "B" }</small> { " / " }
                 <small><time datetime={ p.date_string.to_owned() }>{ &p.date_string }</time></small>
             </section>
