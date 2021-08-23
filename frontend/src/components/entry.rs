@@ -1,3 +1,4 @@
+use crate::{AppMsg, SERVER_URL};
 use serde::Deserialize;
 use yew::prelude::*;
 use yew::Properties;
@@ -47,26 +48,28 @@ impl Component for Entry {
     fn view(&self) -> Html {
         let p = &self.props;
         let thumb = if let Some(thumb) = &p.thumb {
+            let src = format!("{}{}", SERVER_URL, &thumb);
             html! {
+            <>
                 <a href={ p.path.to_owned() } class="file">
-                    <img src={ thumb.to_owned() } loading="lazy" class="thumb pb-3" />
-                </a>
+                    <img src={ src } loading="lazy" class="thumb pb-3" />
+                </a><br />
+            </>
             }
         } else {
             html! {}
         };
 
         html! {
-            <div>
+            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-3 mb-sm-2 mb-lg-5 dir text-break">
                 { thumb }
                 <a href={ p.path.to_owned() } class="file file-link">
                     <i class="bi bi-file-richtext text-success"></i>
-                    <strong>{ p.name.to_owned() }</strong>
-                </a>
-                <br />
-                <small>{ p.size.to_owned() }{ "B" }</small> { " / " }
-                <small><time datetime={ p.date_string.to_owned() }>{ p.date_string.to_owned() }</time></small>
-            </div>
+                    <strong>{" "}{ &p.name }</strong>
+                </a><br />
+                <small>{ &p.size }{ "B" }</small> { " / " }
+                <small><time datetime={ p.date_string.to_owned() }>{ &p.date_string }</time></small>
+            </section>
         }
     }
 }

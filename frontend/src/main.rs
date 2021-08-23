@@ -10,7 +10,13 @@ use yew::Properties;
 use yew_router::prelude::*;
 
 mod components;
-use crate::components::entry::{Entry, EntryProps};
+use crate::components::{
+    entry::{Entry, EntryProps},
+    modal::{Modal, ModalProps},
+};
+
+// TODO: Move this to config
+pub const SERVER_URL: &str = "http://localhost:8000/";
 
 #[derive(Clone, Debug, Switch)]
 pub enum AppRoute {
@@ -37,6 +43,7 @@ pub struct Dir {
 pub enum AppMsg {
     Init,
     PageLoad(Result<Dir, anyhow::Error>),
+    LoadModal(String),
 }
 pub struct App {
     link: ComponentLink<Self>,
@@ -74,6 +81,10 @@ impl Component for App {
                     false
                 }
             },
+            AppMsg::LoadModal(src) => {
+                ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
+                false
+            }
         }
     }
 
@@ -83,17 +94,23 @@ impl Component for App {
 
     fn rendered(&mut self, first_render: bool) {
         if first_render {
-            self.update(AppMsg::Init);
+            self.link.send_message(AppMsg::Init);
         }
     }
 
     fn view(&self) -> Html {
+        let mut title = "";
+        let mut base_path = "";
+
         let content = if self.data.is_none() {
             html! {
                 <p>{ "Loading.." }</p>
             }
         } else {
             let data = self.data.as_ref().unwrap();
+            title = data.title.as_str();
+            base_path = data.base_path.as_str();
+
             let folders = data.folders.iter().map(|e| {
                 html! {
                     <Entry with e.to_owned() />
@@ -105,16 +122,18 @@ impl Component for App {
                 }
             });
             html! {
-                <section>
+                <div class="row gx-5">
                 { for folders }
                 { for files }
-                </section>
+                </div>
             }
         };
 
         html! {
             <>
-                <main>
+                <Modal src="placeholder.png" media="image" />
+                <main class="container">
+                    <h1 id="title">{ base_path }{ title }</h1>
                     { content }
                 </main>
             </>
@@ -124,7 +143,7 @@ impl Component for App {
 
 impl App {
     fn fetch_page(&self, path: &str) -> Option<FetchTask> {
-        let request = Request::get(format!("http://localhost:8000/{}", path).as_str())
+        let request = Request::get(format!("{}{}", SERVER_URL, path).as_str())
             .body(Nothing)
             .expect("Could not load from API");
         let callback =
