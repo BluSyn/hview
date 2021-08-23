@@ -20,7 +20,7 @@ use crate::components::{
 // TODO: Move this to config
 pub const SERVER_URL: &str = "http://localhost:8000/";
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Dir {
     title: String,
     base_path: String,
@@ -35,15 +35,16 @@ pub enum PageMsg {
     LoadModal(String),
 }
 
-#[derive(Properties, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Properties, Clone, PartialEq)]
 pub struct PageProps {
     path: String,
+    page: Option<Dir>,
 }
 
 pub struct Page {
     link: ComponentLink<Self>,
     props: PageProps,
-    data: Option<Dir>,
+    // data: Option<Dir>,
     task: Option<FetchTask>,
 }
 
@@ -55,7 +56,6 @@ impl Component for Page {
         Self {
             link,
             props,
-            data: None,
             task: None,
         }
     }
@@ -64,7 +64,7 @@ impl Component for Page {
         match msg {
             PageMsg::PageLoad(result) => match result {
                 Ok(data) => {
-                    self.data = Some(data);
+                    self.props.page = Some(data);
                     true
                 }
                 Err(error) => {
@@ -98,15 +98,10 @@ impl Component for Page {
     }
 
     fn view(&self) -> Html {
-        let mut title = "";
+        let mut title = "Loading...";
         let mut base_path = "";
 
-        let content = if self.data.is_none() {
-            html! {
-                <p>{ "Loading.." }</p>
-            }
-        } else {
-            let data = self.data.as_ref().unwrap();
+        let content = if let Some(data) = &self.props.page {
             title = data.title.as_str();
             base_path = data.base_path.as_str();
 
@@ -126,6 +121,8 @@ impl Component for Page {
                 { for files }
                 </div>
             }
+        } else {
+            html! { <p>{ "..." }</p> }
         };
 
         html! {
