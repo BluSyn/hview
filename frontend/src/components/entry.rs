@@ -5,9 +5,9 @@ use yew::prelude::*;
 use yew::Properties;
 
 pub enum EntryMsg {
-    Display,
-    Delete,
-    Rename,
+    // Display,
+    // Delete,
+    // Rename,
 }
 
 #[derive(Deserialize, Clone, Debug, PartialEq)]
@@ -72,12 +72,13 @@ impl Component for Entry {
         Self { props, link }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            EntryMsg::Display => true,
-            EntryMsg::Delete => true,
-            EntryMsg::Rename => true,
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        // match msg {
+        //     EntryMsg::Display => true,
+        //     EntryMsg::Delete => true,
+        //     EntryMsg::Rename => true,
+        // }
+        false
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {

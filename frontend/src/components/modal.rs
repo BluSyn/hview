@@ -1,6 +1,6 @@
-use std::fmt;
 use yew::html::IntoPropValue;
 use yew::prelude::*;
+use yew::services::ConsoleService;
 use yew::Properties;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -29,10 +29,10 @@ impl Into<&str> for MediaType {
 }
 
 pub enum ModalMsg {
-    Show,
-    Hide,
-    Next,
-    Previous,
+    // Show,
+// Hide,
+// Next,
+// Previous,
 }
 
 #[derive(Properties, Debug, Clone, PartialEq)]
@@ -56,12 +56,18 @@ impl Component for Modal {
         true
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        if self.props != props {
+            self.props = props;
+            true
+        } else {
+            false
+        }
     }
 
     fn view(&self) -> Html {
         let p = &self.props;
+        ConsoleService::info(format!("Rendering Modal: {:?}", p.src).as_str());
         let media = match p.media {
             MediaType::Image => {
                 html! {

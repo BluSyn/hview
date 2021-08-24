@@ -1,20 +1,16 @@
-use anyhow::Error;
 use serde::Deserialize;
-use url::Url;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::ConsoleService;
-use yew::utils::document;
 use yew::Properties;
 use yew_router::components::RouterAnchor;
 use yew_router::prelude::*;
-// use yew_router::switch::Permissive;
 
 mod components;
 use crate::components::{
     entry::{Entry, EntryProps},
-    modal::{Modal, ModalProps},
+    modal::{MediaType, Modal},
 };
 
 // TODO: Move this to config
@@ -48,13 +44,13 @@ pub struct Dir {
 #[derive(Debug)]
 pub enum PageMsg {
     PageLoad(Result<Dir, anyhow::Error>),
-    LoadModal(String),
 }
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct PageProps {
     path: String,
     page: Option<Dir>,
+    callback: Option<Callback<String>>,
 }
 
 pub struct Page {
@@ -88,18 +84,18 @@ impl Component for Page {
                     false
                 }
             },
-            PageMsg::LoadModal(src) => {
-                ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
-                false
-            }
         }
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         if self.props.path != props.path {
             if is_vid(props.path.as_str()) || is_img(props.path.as_str()) {
-                let cb = self.link.callback(PageMsg::LoadModal);
-                cb.emit(props.path.to_owned());
+                // let cb = self.link.callback(PageMsg::LoadModal);
+                self.props
+                    .callback
+                    .as_ref()
+                    .unwrap()
+                    .emit(props.path.to_owned());
             } else {
                 ConsoleService::info(format!("Page Changed: {:?}", props.path).as_str());
                 self.task = self.fetch_page(props.path.as_str());
@@ -190,17 +186,48 @@ impl Page {
     }
 }
 
-pub struct App {}
+pub enum AppMsg {
+    LoadModal(String),
+}
+#[derive(Properties, Clone, Debug, PartialEq)]
+pub struct AppProps {
+    modal_src: String,
+    modal_type: MediaType,
+}
+impl Default for AppProps {
+    fn default() -> AppProps {
+        AppProps {
+            modal_src: String::from(""),
+            modal_type: MediaType::Image,
+        }
+    }
+}
+pub struct App {
+    props: AppProps,
+    link: ComponentLink<Self>,
+}
 impl Component for App {
-    type Message = ();
-    type Properties = ();
+    type Message = AppMsg;
+    type Properties = AppProps;
 
-    fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self {}
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self { props, link }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        false
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            AppMsg::LoadModal(src) => {
+                ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
+                self.props.modal_src = src.to_string();
+                self.props.modal_type = if is_img(&src) {
+                    MediaType::Image
+                } else {
+                    MediaType::Video
+                };
+
+                true
+            }
+        }
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -208,16 +235,17 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        let render = Router::render(|switch: AppRoute| -> Html {
+        let cb = self.link.callback(AppMsg::LoadModal);
+        let render = Router::render(move |switch: AppRoute| -> Html {
             match switch {
                 AppRoute::Entry(path) => {
-                    html! { <Page path={ path } /> }
+                    html! { <Page path={ path } callback={ &cb } /> }
                 }
             }
         });
         html! {
             <>
-                <Modal src="placeholder.png" media="image" />
+                <Modal src={ self.props.modal_src.to_owned() } media={ self.props.modal_type.to_owned() } />
                 <main class="container">
                     <Router<AppRoute> render={ render } />
                 </main>
