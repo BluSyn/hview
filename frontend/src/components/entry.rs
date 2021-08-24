@@ -27,7 +27,7 @@ impl Into<EntryType> for &str {
         match self {
             "file" => EntryType::File,
             "folder" => EntryType::Folder,
-            _ => EntryType::File
+            _ => EntryType::File,
         }
     }
 }
@@ -55,7 +55,7 @@ pub struct EntryProps {
     pub thumb: Option<String>,
     pub ext: Option<String>,
     #[prop_or_default]
-    #[serde(default)]
+    #[serde(skip)]
     pub etype: EntryType,
 }
 
@@ -93,11 +93,17 @@ impl Component for Entry {
         let p = &self.props;
         let etype: &str = p.etype.to_owned().into();
 
+        // Ensure paths have proper trailing /
+        let link = match &p.etype {
+            EntryType::File => format!("/{}", &p.path),
+            EntryType::Folder => format!("/{}/", &p.path),
+        };
+
         let thumb = if let Some(thumb) = &p.thumb {
             let src = format!("{}{}", SERVER_URL, &thumb);
             html! {
             <>
-                <AppAnchor classes={ etype } route=AppRoute::Entry(p.path.to_owned())>
+                <AppAnchor classes={ etype } route=AppRoute::Entry(link.to_owned())>
                     <img src={ src } loading="lazy" class="thumb pb-3" />
                 </AppAnchor><br />
             </>
@@ -108,13 +114,13 @@ impl Component for Entry {
 
         let icon = match &p.etype {
             EntryType::File => classes!("bi", "bi-file-richtext", "text-success"),
-            EntryType::Folder => classes!("bi", "bi-folder-fill", "text-info")
+            EntryType::Folder => classes!("bi", "bi-folder-fill", "text-info"),
         };
 
         html! {
             <section class=classes!("col-xs-12","col-sm-6","col-md-4","col-lg-3","mb-sm-2","mb-lg-5","text-break", etype)>
                 { thumb }
-                <AppAnchor classes={ etype } route=AppRoute::Entry(p.path.to_owned())>
+                <AppAnchor classes={ etype } route=AppRoute::Entry(link)>
                     <i class={ icon }></i>
                     <strong>{" "}{ &p.name }</strong>
                 </AppAnchor><br />

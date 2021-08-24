@@ -20,6 +20,22 @@ use crate::components::{
 // TODO: Move this to config
 pub const SERVER_URL: &str = "http://localhost:8000/";
 
+pub const IMG_TYPES: &[&'static str] = &[
+    ".jpg", ".jpeg", ".jpe", ".png", ".gif", ".avif", ".webp", ".heic",
+];
+pub fn is_img(path: &str) -> bool {
+    let p = &path.to_lowercase();
+    IMG_TYPES.iter().find(|&&t| p.contains(t)).is_some()
+}
+
+pub const VID_TYPES: &[&'static str] = &[
+    ".mp4", ".webm", ".mts", ".mov", ".ogv", ".ogg", ".mp3", ".flac", ".wav",
+];
+pub fn is_vid(path: &str) -> bool {
+    let p = &path.to_lowercase();
+    VID_TYPES.iter().find(|&&t| p.contains(t)).is_some()
+}
+
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Dir {
     title: String,
@@ -81,8 +97,14 @@ impl Component for Page {
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         if self.props.path != props.path {
-            ConsoleService::info(format!("Page Changed: {:?}", props.path).as_str());
-            self.task = self.fetch_page(props.path.as_str());
+            if is_vid(props.path.as_str()) || is_img(props.path.as_str()) {
+                let cb = self.link.callback(PageMsg::LoadModal);
+                cb.emit(props.path.to_owned());
+            } else {
+                ConsoleService::info(format!("Page Changed: {:?}", props.path).as_str());
+                self.task = self.fetch_page(props.path.as_str());
+            }
+
             self.props.path = props.path;
             // TODO: Render here to show loading animation?
             false
