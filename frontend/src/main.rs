@@ -107,12 +107,30 @@ impl Component for Page {
 
             let folders = data.folders.iter().map(|e| {
                 html! {
-                    <Entry with e.to_owned() />
+                    <Entry
+                      name={ e.name.to_owned() }
+                      path={ e.path.to_owned() }
+                      size={ e.size.to_owned() }
+                      date={ e.date.to_owned() }
+                      date_string={ e.date_string.to_owned() }
+                      thumb={ e.thumb.to_owned() }
+                      ext={ e.ext.to_owned() }
+                      etype="folder"
+                      />
                 }
             });
             let files = data.files.iter().map(|e| {
                 html! {
-                    <Entry with e.to_owned() />
+                    <Entry
+                      name={ e.name.to_owned() }
+                      path={ e.path.to_owned() }
+                      size={ e.size.to_owned() }
+                      date={ e.date.to_owned() }
+                      date_string={ e.date_string.to_owned() }
+                      thumb={ e.thumb.to_owned() }
+                      ext={ e.ext.to_owned() }
+                      etype="file"
+                      />
                 }
             });
             html! {
