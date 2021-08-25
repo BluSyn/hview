@@ -93,6 +93,7 @@ impl Component for Page {
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         if self.props.path != props.path {
             if is_media(props.path.as_str()) {
+                // Trigger modal
                 self.props
                     .callback
                     .as_ref()
@@ -101,6 +102,9 @@ impl Component for Page {
             } else {
                 ConsoleService::info(format!("Page Changed: {:?}", props.path).as_str());
                 self.task = self.fetch_page(props.path.as_str());
+
+                // Reset Modal
+                self.props.callback.as_ref().unwrap().emit("".to_string());
             }
 
             self.props.path = props.path;
@@ -115,9 +119,9 @@ impl Component for Page {
         // On page init, the path may be a dir or a file
         // display modal if it's a file + load directory the file is in
         if first_render {
-            let path = &self.props.path.as_str();
             let fetch_path: &str;
-            if is_media(path) {
+            if is_media(&self.props.path.as_str()) {
+                // Trigger modal
                 self.props
                     .callback
                     .as_ref()
@@ -238,10 +242,16 @@ impl Component for App {
             AppMsg::LoadModal(src) => {
                 ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
                 self.props.modal_src = src.to_string();
-                self.props.modal_type = if is_img(&src) {
+
+                // Handle default case (if string is empty) first
+                self.props.modal_type = if src == String::from("") {
+                    MediaType::None
+                } else if is_img(&src) {
                     MediaType::Image
-                } else {
+                } else if is_vid(&src) {
                     MediaType::Video
+                } else {
+                    MediaType::None
                 };
 
                 true

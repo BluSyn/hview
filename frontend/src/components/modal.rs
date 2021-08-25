@@ -3,10 +3,10 @@ use yew::prelude::*;
 use yew::services::ConsoleService;
 use yew::Properties;
 
-use wasm_bindgen::prelude::*;
-use web_sys::Element;
-
 use crate::SERVER_URL;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use web_sys::Element;
 
 // Modal uses external Bootstrap Modal
 // TODO: In the future this could be brought "in-house"
@@ -20,12 +20,16 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn show(this: &BootstrapModal) -> bool;
+
+    #[wasm_bindgen(method)]
+    fn hide(this: &BootstrapModal) -> bool;
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum MediaType {
     Image,
     Video,
+    None,
 }
 
 impl IntoPropValue<MediaType> for &str {
@@ -33,7 +37,7 @@ impl IntoPropValue<MediaType> for &str {
         match self {
             "image" => MediaType::Image,
             "video" => MediaType::Video,
-            _ => MediaType::Image,
+            _ => MediaType::None,
         }
     }
 }
@@ -43,6 +47,7 @@ impl Into<&str> for MediaType {
         match self {
             MediaType::Image => "image",
             MediaType::Video => "video",
+            MediaType::None => "none",
         }
     }
 }
@@ -83,7 +88,15 @@ impl Component for Modal {
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         if self.props != props {
             self.props = props;
-            true
+
+            // If updated type is none, and modal instance already exists
+            // signal to hide the modal
+            if self.props.media == MediaType::None && self.instance.is_some() {
+                self.instance.as_ref().unwrap().hide();
+                false
+            } else {
+                true
+            }
         } else {
             false
         }
@@ -109,10 +122,13 @@ impl Component for Modal {
                   </div>
                 }
             }
+            MediaType::None => {
+                html! {}
+            }
         };
 
         html! {
-            <div class="modal fade" id="media_modal" tabindex="-1" aria-hidden="true">
+            <div class="modal fade" id="media_modal" tabindex="-1" aria-hidden="true" data-bs-keyboard="false">
               <div class="modal-dialog modal-fullscreen">
                 <div class="modal-content">
                   <div class="modal-body">{ media }</div>
@@ -122,15 +138,41 @@ impl Component for Modal {
         }
     }
 
+    // Handle Bootstrap Modal instance
     fn rendered(&mut self, first_render: bool) {
         if first_render {
-            let modal_element = web_sys::window()
-                .unwrap()
-                .document()
-                .unwrap()
-                .get_element_by_id("media_modal")
-                .unwrap();
+            let document = web_sys::window().unwrap().document().unwrap();
+            let modal_element = document.get_element_by_id("media_modal").unwrap();
             self.instance = Some(BootstrapModal::new(modal_element));
+
+            let cb = Closure::wrap(Box::new(|event: web_sys::KeyboardEvent| {
+                if event.key() != "Escape" {
+                    return ();
+                }
+
+                let window = web_sys::window().expect("DOM Window");
+                let history = window.history().expect("no history");
+                let current_path = window.location().href().expect("no location");
+                if let Some(index) = current_path.rfind('/') {
+                    let path = &current_path[0..index + 1];
+                    history
+                        .push_state_with_url(&JsValue::NULL, "", Some(&path))
+                        .expect("push history");
+                    let event = web_sys::PopStateEvent::new("popstate").expect("popstate event");
+                    window.dispatch_event(&event).expect("dispatch");
+
+                    ConsoleService::info(format!("Modal Closed: {:?}", path).as_str());
+                }
+            }) as Box<dyn FnMut(_)>);
+
+            document
+                .get_element_by_id("media_modal")
+                .unwrap()
+                .add_event_listener_with_callback("keydown", cb.as_ref().unchecked_ref())
+                .unwrap();
+
+            // Technically leaks memory?
+            cb.forget();
         } else {
             self.instance.as_ref().unwrap().show();
         }
