@@ -13,7 +13,7 @@ use crate::SERVER_URL;
 // however this works as a good proof-of-concept
 #[wasm_bindgen]
 extern "C" {
-    type BootstrapModal;
+    pub type BootstrapModal;
 
     #[wasm_bindgen(js_namespace = bootstrap, js_class = Modal, constructor)]
     fn new(element: Element) -> BootstrapModal;
@@ -62,13 +62,18 @@ pub struct ModalProps {
 pub struct Modal {
     pub link: ComponentLink<Self>,
     pub props: ModalProps,
+    pub instance: Option<BootstrapModal>,
 }
 impl Component for Modal {
     type Message = ModalMsg;
     type Properties = ModalProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, props }
+        Self {
+            link,
+            props,
+            instance: None,
+        }
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
@@ -118,14 +123,16 @@ impl Component for Modal {
     }
 
     fn rendered(&mut self, first_render: bool) {
-        if !first_render {
+        if first_render {
             let modal_element = web_sys::window()
                 .unwrap()
                 .document()
                 .unwrap()
                 .get_element_by_id("media_modal")
                 .unwrap();
-            BootstrapModal::new(modal_element).show();
+            self.instance = Some(BootstrapModal::new(modal_element));
+        } else {
+            self.instance.as_ref().unwrap().show();
         }
     }
 }
