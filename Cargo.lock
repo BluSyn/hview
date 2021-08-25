@@ -570,6 +570,8 @@ dependencies = [
  "anyhow",
  "serde",
  "url",
+ "wasm-bindgen",
+ "web-sys",
  "yew",
  "yew-router",
 ]

@@ -3,6 +3,25 @@ use yew::prelude::*;
 use yew::services::ConsoleService;
 use yew::Properties;
 
+use wasm_bindgen::prelude::*;
+use web_sys::Element;
+
+use crate::SERVER_URL;
+
+// Modal uses external Bootstrap Modal
+// TODO: In the future this could be brought "in-house"
+// however this works as a good proof-of-concept
+#[wasm_bindgen]
+extern "C" {
+    type BootstrapModal;
+
+    #[wasm_bindgen(js_namespace = bootstrap, js_class = Modal, constructor)]
+    fn new(element: Element) -> BootstrapModal;
+
+    #[wasm_bindgen(method)]
+    fn show(this: &BootstrapModal) -> bool;
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum MediaType {
     Image,
@@ -53,7 +72,7 @@ impl Component for Modal {
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        true
+        false
     }
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
@@ -68,18 +87,20 @@ impl Component for Modal {
     fn view(&self) -> Html {
         let p = &self.props;
         ConsoleService::info(format!("Rendering Modal: {:?}", p.src).as_str());
+
+        let src = format!("{}{}", SERVER_URL, p.src);
         let media = match p.media {
             MediaType::Image => {
                 html! {
                   <div id="media_img">
-                      <img draggable="false" title="" src={ p.src.to_owned() } />
+                      <img draggable="false" title="" src={ src } />
                   </div>
                 }
             }
             MediaType::Video => {
                 html! {
                   <div id="media_vid">
-                      <video controls=true src={ p.src.to_owned() } />
+                      <video controls=true src={ src } />
                   </div>
                 }
             }
@@ -93,6 +114,18 @@ impl Component for Modal {
                 </div>
               </div>
             </div>
+        }
+    }
+
+    fn rendered(&mut self, first_render: bool) {
+        if !first_render {
+            let modal_element = web_sys::window()
+                .unwrap()
+                .document()
+                .unwrap()
+                .get_element_by_id("media_modal")
+                .unwrap();
+            BootstrapModal::new(modal_element).show();
         }
     }
 }

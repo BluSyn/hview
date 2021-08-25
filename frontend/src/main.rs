@@ -16,7 +16,7 @@ use crate::components::{
 // TODO: Move this to config
 pub const SERVER_URL: &str = "http://localhost:8000/";
 
-pub const IMG_TYPES: &[&'static str] = &[
+pub const IMG_TYPES: [&str; 8] = [
     ".jpg", ".jpeg", ".jpe", ".png", ".gif", ".avif", ".webp", ".heic",
 ];
 pub fn is_img(path: &str) -> bool {
@@ -24,12 +24,16 @@ pub fn is_img(path: &str) -> bool {
     IMG_TYPES.iter().find(|&&t| p.contains(t)).is_some()
 }
 
-pub const VID_TYPES: &[&'static str] = &[
+pub const VID_TYPES: [&str; 9] = [
     ".mp4", ".webm", ".mts", ".mov", ".ogv", ".ogg", ".mp3", ".flac", ".wav",
 ];
 pub fn is_vid(path: &str) -> bool {
     let p = &path.to_lowercase();
     VID_TYPES.iter().find(|&&t| p.contains(t)).is_some()
+}
+
+pub fn is_media(path: &str) -> bool {
+    is_img(&path) || is_vid(&path)
 }
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
@@ -56,7 +60,6 @@ pub struct PageProps {
 pub struct Page {
     link: ComponentLink<Self>,
     props: PageProps,
-    // data: Option<Dir>,
     task: Option<FetchTask>,
 }
 
@@ -89,8 +92,7 @@ impl Component for Page {
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         if self.props.path != props.path {
-            if is_vid(props.path.as_str()) || is_img(props.path.as_str()) {
-                // let cb = self.link.callback(PageMsg::LoadModal);
+            if is_media(props.path.as_str()) {
                 self.props
                     .callback
                     .as_ref()
@@ -110,8 +112,25 @@ impl Component for Page {
     }
 
     fn rendered(&mut self, first_render: bool) {
+        // On page init, the path may be a dir or a file
+        // display modal if it's a file + load directory the file is in
         if first_render {
-            self.task = self.fetch_page(self.props.path.as_str());
+            let path = &self.props.path.as_str();
+            let fetch_path: &str;
+            if is_media(path) {
+                self.props
+                    .callback
+                    .as_ref()
+                    .unwrap()
+                    .emit(self.props.path.to_owned());
+                // Get dir of file
+                let index = self.props.path.rfind('/').unwrap();
+                fetch_path = &self.props.path[0..index + 1];
+            } else {
+                fetch_path = &self.props.path;
+            }
+
+            self.task = self.fetch_page(fetch_path);
         }
     }
 
