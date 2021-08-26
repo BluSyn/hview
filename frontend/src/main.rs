@@ -5,10 +5,7 @@ use yew_router::components::RouterAnchor;
 use yew_router::prelude::*;
 
 mod components;
-use crate::components::{
-    modal::{MediaType, Modal},
-    page::Page,
-};
+use crate::components::page::Page;
 
 // TODO: Move this to config
 pub const SERVER_URL: &str = "http://localhost:8000/";
@@ -37,16 +34,10 @@ pub enum AppMsg {
     LoadModal(String),
 }
 #[derive(Properties, Clone, Debug, PartialEq)]
-pub struct AppProps {
-    modal_src: String,
-    modal_type: MediaType,
-}
+pub struct AppProps {}
 impl Default for AppProps {
     fn default() -> AppProps {
-        AppProps {
-            modal_src: String::from(""),
-            modal_type: MediaType::Image,
-        }
+        AppProps {}
     }
 }
 pub struct App {
@@ -61,26 +52,8 @@ impl Component for App {
         Self { props, link }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            AppMsg::LoadModal(src) => {
-                ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
-                self.props.modal_src = src.to_string();
-
-                // Handle default case (if string is empty) first
-                self.props.modal_type = if src == String::from("") {
-                    MediaType::None
-                } else if is_img(&src) {
-                    MediaType::Image
-                } else if is_vid(&src) {
-                    MediaType::Video
-                } else {
-                    MediaType::None
-                };
-
-                true
-            }
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        false
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -88,22 +61,18 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        let cb = self.link.callback(AppMsg::LoadModal);
         let render = Router::render(move |switch: AppRoute| -> Html {
             match switch {
                 AppRoute::Entry(path) => {
-                    html! { <Page path={ path } callback={ &cb } /> }
+                    html! { <Page path={ path } /> }
                 }
             }
         });
 
         html! {
-            <>
-                <Modal src={ self.props.modal_src.to_owned() } media={ self.props.modal_type.to_owned() } />
-                <main class="container">
-                    <Router<AppRoute> render={ render } />
-                </main>
-            </>
+            <main class="container">
+                <Router<AppRoute> render={ render } />
+            </main>
         }
     }
 }

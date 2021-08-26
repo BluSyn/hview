@@ -10,7 +10,8 @@ use yew::services::ConsoleService;
 use yew::Properties;
 
 use super::entry::{Entry, EntryProps};
-use crate::{is_media, SERVER_URL};
+use super::modal::{MediaType, Modal, ModalProps};
+use crate::{is_media, is_vid, is_img, SERVER_URL};
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Dir {
@@ -24,19 +25,22 @@ pub struct Dir {
 #[derive(Debug)]
 pub enum PageMsg {
     PageLoad(Result<Dir, anyhow::Error>),
+    LoadModal(String),
+    ModalNext
 }
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct PageProps {
     pub path: String,
     pub page: Option<Dir>,
-    pub callback: Option<Callback<String>>,
+    // pub callback: Option<Callback<String>>,
 }
 
 pub struct Page {
     link: ComponentLink<Self>,
     props: PageProps,
     task: Option<FetchTask>,
+    modal: ModalProps
 }
 
 impl Component for Page {
@@ -48,6 +52,7 @@ impl Component for Page {
             link,
             props,
             task: None,
+            modal: ModalProps::default()
         }
     }
 
@@ -63,6 +68,53 @@ impl Component for Page {
                     false
                 }
             },
+            PageMsg::LoadModal(src) => {
+                ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
+                self.modal.src = src.to_string();
+
+                // Handle default case (if string is empty) first
+                self.modal.media = if src == String::from("") {
+                    MediaType::None
+                } else if is_img(&src) {
+                    MediaType::Image
+                } else if is_vid(&src) {
+                    MediaType::Video
+                } else {
+                    MediaType::None
+                };
+
+                true
+            }
+            PageMsg::ModalNext => {
+                let findex = &self.modal.src.rfind('/').expect("complete path");
+                let srcname = &self.modal.src[*findex+1..];
+
+                let page = &self.props.page.as_ref().unwrap();
+                let files = &page.files;
+                let current = files.iter().position(|e| e.name == srcname);
+                let src = if let Some(index) = current {
+                    if index+1 >= files.len() {
+                        files.get(0).unwrap().path.to_owned()
+                    } else {
+                        files.get(index+1).unwrap().path.to_owned()
+                    }
+                } else {
+                    "".to_string()
+                };
+                ConsoleService::info(format!("Next Modal: {:?}", srcname).as_str());
+                // Handle default case (if string is empty) first
+                self.modal.media = if src == String::from("") {
+                    MediaType::None
+                } else if is_img(&src) {
+                    MediaType::Image
+                } else if is_vid(&src) {
+                    MediaType::Video
+                } else {
+                    MediaType::None
+                };
+                self.modal.src = format!("/{}", src);
+                true
+            }
         }
     }
 
@@ -70,17 +122,19 @@ impl Component for Page {
         if self.props.path != props.path {
             if is_media(props.path.as_str()) {
                 // Trigger modal
-                self.props
-                    .callback
-                    .as_ref()
-                    .unwrap()
-                    .emit(props.path.to_owned());
+                // self.props
+                //     .callback
+                //     .as_ref()
+                //     .unwrap()
+                //     .emit(props.path.to_owned());
+                self.link.callback(PageMsg::LoadModal).emit(props.path.to_owned());
             } else {
                 ConsoleService::info(format!("Page Changed: {:?}", props.path).as_str());
                 self.task = self.fetch_page(props.path.as_str());
 
                 // Reset Modal
-                self.props.callback.as_ref().unwrap().emit("".to_string());
+                // self.props.callback.as_ref().unwrap().emit("".to_string());
+                self.modal = ModalProps::default()
             }
 
             self.props.path = props.path;
@@ -98,11 +152,8 @@ impl Component for Page {
             let fetch_path: &str;
             if is_media(&self.props.path.as_str()) {
                 // Trigger modal
-                self.props
-                    .callback
-                    .as_ref()
-                    .unwrap()
-                    .emit(self.props.path.to_owned());
+                self.link.callback(PageMsg::LoadModal).emit(self.props.path.to_owned());
+
                 // Get dir of file
                 let index = self.props.path.rfind('/').unwrap();
                 fetch_path = &self.props.path[0..index + 1];
@@ -162,6 +213,7 @@ impl Component for Page {
 
         html! {
             <>
+                <Modal src={ self.modal.src.to_owned() } media={ self.modal.media.to_owned() } />
                 <h1 id="title">{ base_path }{ title }</h1>
                 { content }
             </>

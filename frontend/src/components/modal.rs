@@ -4,7 +4,7 @@ use yew::services::ConsoleService;
 use yew::Properties;
 
 use crate::SERVER_URL;
-use crate::{App, AppMsg};
+use super::page::{Page, PageMsg};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{Element, HtmlElement};
@@ -65,13 +65,23 @@ pub enum ModalMsg {
 pub struct ModalProps {
     pub src: String,
     pub media: MediaType,
-    pub callback: Option<Callback<()>>,
 }
+
+impl Default for ModalProps {
+    fn default() -> ModalProps {
+        ModalProps {
+            src: String::from(""),
+            media: MediaType::None,
+        }
+    }
+}
+
 pub struct Modal {
     pub link: ComponentLink<Self>,
     pub props: ModalProps,
     pub instance: Option<BootstrapModal>,
 }
+
 impl Component for Modal {
     type Message = ModalMsg;
     type Properties = ModalProps;
@@ -91,8 +101,8 @@ impl Component for Modal {
                     .get_parent()
                     .expect("Parent Comp")
                     .clone()
-                    .downcast::<App>()
-                    .send_message(AppMsg::LoadModal("placeholder.png".to_string()));
+                    .downcast::<Page>()
+                    .send_message(PageMsg::ModalNext);
             }
             ModalMsg::Hide => {
                 // HIde by calling parent callback?
