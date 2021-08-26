@@ -1,8 +1,4 @@
 use serde::Deserialize;
-use std::cell::RefCell;
-use std::rc::Rc;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
@@ -10,8 +6,8 @@ use yew::services::ConsoleService;
 use yew::Properties;
 
 use super::entry::{Entry, EntryProps};
-use super::modal::{MediaType, Modal, ModalProps};
-use crate::{is_media, is_vid, is_img, SERVER_URL};
+use super::modal::{is_media, MediaType, Modal, ModalProps};
+use crate::SERVER_URL;
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Dir {
@@ -26,21 +22,21 @@ pub struct Dir {
 pub enum PageMsg {
     PageLoad(Result<Dir, anyhow::Error>),
     LoadModal(String),
-    ModalNext
+    ModalNext,
+    ModalPrevious,
 }
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct PageProps {
     pub path: String,
     pub page: Option<Dir>,
-    // pub callback: Option<Callback<String>>,
 }
 
 pub struct Page {
     link: ComponentLink<Self>,
     props: PageProps,
     task: Option<FetchTask>,
-    modal: ModalProps
+    modal: ModalProps,
 }
 
 impl Component for Page {
@@ -52,7 +48,7 @@ impl Component for Page {
             link,
             props,
             task: None,
-            modal: ModalProps::default()
+            modal: ModalProps::default(),
         }
     }
 
@@ -71,48 +67,22 @@ impl Component for Page {
             PageMsg::LoadModal(src) => {
                 ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
                 self.modal.src = src.to_string();
-
-                // Handle default case (if string is empty) first
-                self.modal.media = if src == String::from("") {
-                    MediaType::None
-                } else if is_img(&src) {
-                    MediaType::Image
-                } else if is_vid(&src) {
-                    MediaType::Video
-                } else {
-                    MediaType::None
-                };
+                self.modal.media = MediaType::new(src.as_str());
 
                 true
             }
             PageMsg::ModalNext => {
-                let findex = &self.modal.src.rfind('/').expect("complete path");
-                let srcname = &self.modal.src[*findex+1..];
-
-                let page = &self.props.page.as_ref().unwrap();
-                let files = &page.files;
-                let current = files.iter().position(|e| e.name == srcname);
-                let src = if let Some(index) = current {
-                    if index+1 >= files.len() {
-                        files.get(0).unwrap().path.to_owned()
-                    } else {
-                        files.get(index+1).unwrap().path.to_owned()
-                    }
-                } else {
-                    "".to_string()
-                };
-                ConsoleService::info(format!("Next Modal: {:?}", srcname).as_str());
-                // Handle default case (if string is empty) first
-                self.modal.media = if src == String::from("") {
-                    MediaType::None
-                } else if is_img(&src) {
-                    MediaType::Image
-                } else if is_vid(&src) {
-                    MediaType::Video
-                } else {
-                    MediaType::None
-                };
+                let src = self.next_file();
+                self.modal.media = MediaType::new(src.as_str());
                 self.modal.src = format!("/{}", src);
+
+                true
+            }
+            PageMsg::ModalPrevious => {
+                let src = self.prev_file();
+                self.modal.media = MediaType::new(src.as_str());
+                self.modal.src = format!("/{}", src);
+
                 true
             }
         }
@@ -127,7 +97,9 @@ impl Component for Page {
                 //     .as_ref()
                 //     .unwrap()
                 //     .emit(props.path.to_owned());
-                self.link.callback(PageMsg::LoadModal).emit(props.path.to_owned());
+                self.link
+                    .callback(PageMsg::LoadModal)
+                    .emit(props.path.to_owned());
             } else {
                 ConsoleService::info(format!("Page Changed: {:?}", props.path).as_str());
                 self.task = self.fetch_page(props.path.as_str());
@@ -152,7 +124,9 @@ impl Component for Page {
             let fetch_path: &str;
             if is_media(&self.props.path.as_str()) {
                 // Trigger modal
-                self.link.callback(PageMsg::LoadModal).emit(self.props.path.to_owned());
+                self.link
+                    .callback(PageMsg::LoadModal)
+                    .emit(self.props.path.to_owned());
 
                 // Get dir of file
                 let index = self.props.path.rfind('/').unwrap();
@@ -234,5 +208,41 @@ impl Page {
                 });
         let task = FetchService::fetch(request, callback).expect("Could not load page");
         Some(task)
+    }
+
+    // Determine the next file in modal sequence
+    fn next_file(&self) -> String {
+        let findex = &self.modal.src.rfind('/').expect("complete path");
+        let srcname = &self.modal.src[*findex + 1..];
+        let page = &self.props.page.as_ref().unwrap();
+        let files = &page.files;
+        let current = files.iter().position(|e| e.name == srcname);
+        if let Some(index) = current {
+            if index + 1 >= files.len() {
+                files.first().unwrap().path.to_owned()
+            } else {
+                files.get(index + 1).unwrap().path.to_owned()
+            }
+        } else {
+            "".to_string()
+        }
+    }
+
+    // Determine the prev file in modal sequence
+    fn prev_file(&self) -> String {
+        let findex = &self.modal.src.rfind('/').expect("complete path");
+        let srcname = &self.modal.src[*findex + 1..];
+        let page = &self.props.page.as_ref().unwrap();
+        let files = &page.files;
+        let current = files.iter().position(|e| e.name == srcname);
+        if let Some(index) = current {
+            if (index as i8) - 1 < 0 {
+                files.last().unwrap().path.to_owned()
+            } else {
+                files.get(index - 1).unwrap().path.to_owned()
+            }
+        } else {
+            "".to_string()
+        }
     }
 }

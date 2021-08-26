@@ -3,11 +3,10 @@ use yew::prelude::*;
 use yew::services::ConsoleService;
 use yew::Properties;
 
-use crate::SERVER_URL;
 use super::page::{Page, PageMsg};
+use crate::SERVER_URL;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
-use web_sys::{Element, HtmlElement};
+use web_sys::Element;
 
 // Modal uses external Bootstrap Modal
 // TODO: In the future this could be brought "in-house"
@@ -26,11 +25,45 @@ extern "C" {
     fn hide(this: &BootstrapModal) -> bool;
 }
 
+pub const IMG_TYPES: [&str; 8] = [
+    ".jpg", ".jpeg", ".jpe", ".png", ".gif", ".avif", ".webp", ".heic",
+];
+pub const VID_TYPES: [&str; 9] = [
+    ".mp4", ".webm", ".mts", ".mov", ".ogv", ".ogg", ".mp3", ".flac", ".wav",
+];
+pub fn is_img(path: &str) -> bool {
+    let p = &path.to_lowercase();
+    IMG_TYPES.iter().find(|&&t| p.contains(t)).is_some()
+}
+
+pub fn is_vid(path: &str) -> bool {
+    let p = &path.to_lowercase();
+    VID_TYPES.iter().find(|&&t| p.contains(t)).is_some()
+}
+
+pub fn is_media(path: &str) -> bool {
+    is_img(&path) || is_vid(&path)
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum MediaType {
     Image,
     Video,
     None,
+}
+
+impl MediaType {
+    pub fn new(media: &str) -> Self {
+        if media == "" {
+            Self::None
+        } else if is_img(media) {
+            Self::Image
+        } else if is_vid(media) {
+            Self::Video
+        } else {
+            Self::None
+        }
+    }
 }
 
 impl IntoPropValue<MediaType> for &str {
@@ -54,7 +87,7 @@ impl Into<&str> for MediaType {
 }
 
 pub enum ModalMsg {
-    Show,
+    // Show,
     Hide,
     Next,
     Previous,
@@ -103,6 +136,14 @@ impl Component for Modal {
                     .clone()
                     .downcast::<Page>()
                     .send_message(PageMsg::ModalNext);
+            }
+            ModalMsg::Previous => {
+                self.link
+                    .get_parent()
+                    .expect("Parent Comp")
+                    .clone()
+                    .downcast::<Page>()
+                    .send_message(PageMsg::ModalPrevious);
             }
             ModalMsg::Hide => {
                 // HIde by calling parent callback?
