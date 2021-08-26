@@ -4,12 +4,6 @@ use yew::html::IntoPropValue;
 use yew::prelude::*;
 use yew::Properties;
 
-pub enum EntryMsg {
-    // Display,
-    // Delete,
-    // Rename,
-}
-
 #[derive(Deserialize, Clone, Debug, PartialEq)]
 pub enum EntryType {
     File,
@@ -65,7 +59,7 @@ pub struct Entry {
 }
 
 impl Component for Entry {
-    type Message = EntryMsg;
+    type Message = ();
     type Properties = EntryProps;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
@@ -73,11 +67,6 @@ impl Component for Entry {
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        // match msg {
-        //     EntryMsg::Display => true,
-        //     EntryMsg::Delete => true,
-        //     EntryMsg::Rename => true,
-        // }
         false
     }
 

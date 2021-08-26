@@ -7,7 +7,7 @@ use yew::Properties;
 
 use super::entry::{Entry, EntryProps};
 use super::modal::{is_media, MediaType, Modal, ModalProps};
-use crate::SERVER_URL;
+use crate::{App, SERVER_URL};
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Dir {
@@ -72,16 +72,13 @@ impl Component for Page {
                 true
             }
             PageMsg::ModalNext => {
-                let src = self.next_file();
-                self.modal.media = MediaType::new(src.as_str());
-                self.modal.src = format!("/{}", src);
-
+                let src = format!("/{}", self.next_file());
+                App::change_route(src);
                 true
             }
             PageMsg::ModalPrevious => {
-                let src = self.prev_file();
-                self.modal.media = MediaType::new(src.as_str());
-                self.modal.src = format!("/{}", src);
+                let src = format!("/{}", self.prev_file());
+                App::change_route(src);
 
                 true
             }
@@ -92,11 +89,6 @@ impl Component for Page {
         if self.props.path != props.path {
             if is_media(props.path.as_str()) {
                 // Trigger modal
-                // self.props
-                //     .callback
-                //     .as_ref()
-                //     .unwrap()
-                //     .emit(props.path.to_owned());
                 self.link
                     .callback(PageMsg::LoadModal)
                     .emit(props.path.to_owned());
@@ -105,7 +97,6 @@ impl Component for Page {
                 self.task = self.fetch_page(props.path.as_str());
 
                 // Reset Modal
-                // self.props.callback.as_ref().unwrap().emit("".to_string());
                 self.modal = ModalProps::default()
             }
 

@@ -1,12 +1,24 @@
 use yew::prelude::*;
 use yew_router::components::RouterAnchor;
 use yew_router::prelude::*;
+use yew_router::{
+    agent::{RouteAgent, RouteRequest},
+    route::Route,
+};
 
 mod components;
 use crate::components::page::Page;
 
 // TODO: Move this to config
 pub const SERVER_URL: &str = "http://localhost:8000/";
+
+#[derive(Switch, Clone)]
+pub enum AppRoute {
+    #[to = "{*}"]
+    Entry(String),
+}
+
+pub type AppAnchor = RouterAnchor<AppRoute>;
 
 pub struct App {}
 impl Component for App {
@@ -42,13 +54,14 @@ impl Component for App {
     }
 }
 
-#[derive(Switch, Clone)]
-pub enum AppRoute {
-    #[to = "{*}"]
-    Entry(String),
+impl App {
+    pub fn change_route(src: String) {
+        RouteAgent::dispatcher().send(RouteRequest::ChangeRoute(Route {
+            route: src,
+            state: (),
+        }));
+    }
 }
-
-pub type AppAnchor = RouterAnchor<AppRoute>;
 
 fn main() {
     yew::start_app::<App>();

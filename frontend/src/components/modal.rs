@@ -4,7 +4,7 @@ use yew::services::ConsoleService;
 use yew::Properties;
 
 use super::page::{Page, PageMsg};
-use crate::SERVER_URL;
+use crate::{App, SERVER_URL};
 use wasm_bindgen::prelude::*;
 use web_sys::Element;
 
@@ -146,21 +146,10 @@ impl Component for Modal {
                     .send_message(PageMsg::ModalPrevious);
             }
             ModalMsg::Hide => {
-                // HIde by calling parent callback?
-                // self.props.callback.as_ref().unwrap().emit(());
-
                 // Hide by navigating to parent directory
-                let window = web_sys::window().expect("DOM Window");
                 let index = &self.props.src.rfind('/').expect("complete path");
                 let path = &self.props.src[0..index + 1];
-                window
-                    .history()
-                    .expect("no history")
-                    .push_state_with_url(&JsValue::NULL, "", Some(&path))
-                    .expect("push history");
-                let event = web_sys::PopStateEvent::new("popstate").expect("popstate event");
-                window.dispatch_event(&event).expect("dispatch");
-
+                App::change_route(path.to_string());
                 ConsoleService::info(format!("Modal Closed: {:?}", path).as_str());
             }
             _ => {}
