@@ -12,11 +12,8 @@ use actix_web::{
     error::ErrorNotFound, get, middleware, web::Json, App, Either, Error, HttpRequest, HttpServer,
 };
 
-// type FileOrJson = Either<NamedFile, Result<Json<Temp>, Error>>;
-type FileOrJson = Result<Either<NamedFile, Json<Dir>>, Error>;
-
 #[get("/{file:.*}")]
-async fn route(req: HttpRequest) -> FileOrJson {
+async fn route(req: HttpRequest) -> Result<Either<NamedFile, Json<Dir>>, Error> {
     let file: PathBuf = req.match_info().query("file").parse().unwrap();
     let path: PathBuf = DIR.join(file);
 
