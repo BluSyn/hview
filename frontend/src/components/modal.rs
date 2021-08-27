@@ -53,7 +53,7 @@ pub enum MediaType {
 }
 
 impl MediaType {
-    pub fn new(media: &str) -> Self {
+    pub fn from_path(media: &str) -> Self {
         if media == "" {
             Self::None
         } else if is_img(media) {
@@ -160,15 +160,7 @@ impl Component for Modal {
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         if self.props != props {
             self.props = props;
-
-            // If updated type is none, and modal instance already exists
-            // signal to hide the modal
-            if self.props.media == MediaType::None && self.instance.is_some() {
-                self.instance.as_ref().unwrap().hide();
-                false
-            } else {
-                true
-            }
+            true
         } else {
             false
         }
@@ -230,8 +222,12 @@ impl Component for Modal {
                 .get_element_by_id("media_modal")
                 .unwrap();
             self.instance = Some(BootstrapModal::new(element));
-        } else {
+        } else if self.props.media != MediaType::None {
             self.instance.as_ref().unwrap().show();
+            ConsoleService::info("Modal Show");
+        } else {
+            self.instance.as_ref().unwrap().hide();
+            ConsoleService::info("Modal Hide");
         }
     }
 }

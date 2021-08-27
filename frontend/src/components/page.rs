@@ -8,6 +8,7 @@ use yew::Properties;
 use super::entry::{Entry, EntryProps};
 use super::modal::{is_media, MediaType, Modal, ModalProps};
 use crate::{App, AppAnchor, AppRoute, SERVER_URL};
+use anyhow::{anyhow, Error};
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Dir {
@@ -20,7 +21,8 @@ pub struct Dir {
 
 #[derive(Debug)]
 pub enum PageMsg {
-    PageLoad(Result<Dir, anyhow::Error>),
+    PageLoad(Dir),
+    PageError(Error),
     LoadModal(String),
     ModalNext,
     ModalPrevious,
@@ -36,8 +38,10 @@ pub struct Page {
     link: ComponentLink<Self>,
     props: PageProps,
     modal: ModalProps,
+
     task: Option<FetchTask>,
     loaded: Option<String>,
+    error: Option<Error>,
     show_loading: bool,
 }
 
@@ -52,30 +56,30 @@ impl Component for Page {
             modal: ModalProps::default(),
             task: None,
             loaded: None,
+            error: None,
             show_loading: true,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            PageMsg::PageLoad(result) => match result {
-                Ok(data) => {
-                    self.props.page = Some(data);
-                    self.show_loading = false;
-                    true
-                }
-                Err(error) => {
-                    ConsoleService::error(format!("Invalid response: {:?}", error).as_str());
-                    self.show_loading = false;
-                    false
-                }
-            },
+            PageMsg::PageLoad(page) => {
+                self.props.page = Some(page);
+                self.show_loading = false;
+                true
+            }
+            PageMsg::PageError(error) => {
+                ConsoleService::error(format!("Invalid response: {:?}", error).as_str());
+                self.error = Some(error);
+                self.show_loading = false;
+                self.modal = ModalProps::default();
+                true
+            }
             PageMsg::LoadModal(src) => {
                 ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
                 self.modal.src = src.to_string();
-                self.modal.media = MediaType::new(src.as_str());
+                self.modal.media = MediaType::from_path(src.as_str());
                 self.show_loading = false;
-
                 true
             }
             PageMsg::ModalNext => {
@@ -86,7 +90,6 @@ impl Component for Page {
             PageMsg::ModalPrevious => {
                 let src = format!("/{}", self.prev_file());
                 App::change_route(src);
-
                 true
             }
         }
@@ -147,8 +150,6 @@ impl Component for Page {
     }
 
     fn view(&self) -> Html {
-        ConsoleService::info(format!("RENDERING: Loading? {:?}", self.show_loading).as_str());
-
         let mut title = "";
         let mut base_path = "";
         let content = if let Some(data) = &self.props.page {
@@ -202,8 +203,8 @@ impl Component for Page {
         let split = combined.split_inclusive('/').enumerate();
         let clone = split.clone();
         let html_title = split.map(|s| {
-            // Note: Not happy with all the "clone" calls
-            // but the strings have to be duplicated in some way.
+            // Note: Not happy with a loop of "clone" calls
+            // but the strings have to be duplicated anyway.
             // Current solution adds one extra "clone" than is ideally necessary
             let link = clone
                 .clone()
@@ -216,7 +217,9 @@ impl Component for Page {
             }
         });
 
-        let loading = if self.show_loading {
+        let loading = if self.error.is_some() {
+            html! {<span class="error">{ self.error.as_ref().unwrap() }</span>}
+        } else if self.show_loading {
             html! {<span class="loading"></span>}
         } else {
             html! {}
@@ -240,12 +243,25 @@ impl Page {
         let request = Request::get(format!("{}{}", SERVER_URL, path).as_str())
             .body(Nothing)
             .expect("Could not load from API");
-        let callback =
-            self.link
-                .callback(|response: Response<Json<Result<Dir, anyhow::Error>>>| {
+        let callback = self
+            .link
+            .callback(|response: Response<Json<Result<Dir, Error>>>| {
+                let status = response.status();
+                if status.is_success() {
                     let Json(data) = response.into_body();
-                    PageMsg::PageLoad(data)
-                });
+                    match data {
+                        Ok(dir) => PageMsg::PageLoad(dir),
+                        Err(err) => PageMsg::PageError(err),
+                    }
+                } else {
+                    let err = anyhow!(
+                        "Error: {} ({})",
+                        &status.canonical_reason().unwrap(),
+                        &status.as_str()
+                    );
+                    PageMsg::PageError(err)
+                }
+            });
         let task = FetchService::fetch(request, callback).expect("Could not load page");
         Some(task)
     }
