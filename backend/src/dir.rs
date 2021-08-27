@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use chrono::{TimeZone, Utc};
 use rand::seq::IteratorRandom;
-use rocket::serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::config::{BASEPATH, CFG, DIR, THUMB_FORMAT};
 
