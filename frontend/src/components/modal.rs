@@ -150,7 +150,6 @@ impl Component for Modal {
                 let index = &self.props.src.rfind('/').expect("complete path");
                 let path = &self.props.src[0..index + 1];
                 App::change_route(path.to_string());
-                ConsoleService::info(format!("Modal Closed: {:?}", path).as_str());
             }
             _ => {}
         }
@@ -205,6 +204,8 @@ impl Component for Modal {
                     "Escape" => ModalMsg::Hide,
                     "ArrowRight" => ModalMsg::Next,
                     "ArrowLeft" => ModalMsg::Previous,
+                    "Backspace" => ModalMsg::Previous,
+                    " " => ModalMsg::Next,
                     _ => ModalMsg::None,
                 });
 
