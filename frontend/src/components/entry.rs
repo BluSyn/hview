@@ -114,7 +114,7 @@ impl Component for Entry {
                     <i class={ icon }></i>
                     <strong>{" "}{ &p.name }</strong>
                 </AppAnchor><br />
-                <small>{ &p.size }{ "B" }</small> { " / " }
+                <small>{ &p.size/1000 }{ "KiB" }</small> { " / " }
                 <small><time datetime={ p.date_string.to_owned() }>{ &p.date_string }</time></small>
             </section>
         }

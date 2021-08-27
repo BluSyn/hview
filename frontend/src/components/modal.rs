@@ -147,9 +147,10 @@ impl Component for Modal {
             }
             ModalMsg::Hide => {
                 // Hide by navigating to parent directory
-                let index = &self.props.src.rfind('/').expect("complete path");
-                let path = &self.props.src[0..index + 1];
-                App::change_route(path.to_string());
+                if let Some(index) = &self.props.src.rfind('/') {
+                    let path = &self.props.src[0..index + 1];
+                    App::change_route(path.to_string());
+                }
             }
             _ => {}
         }
@@ -180,10 +181,9 @@ impl Component for Modal {
         let src = format!("{}{}", SERVER_URL, p.src);
         let media = match p.media {
             MediaType::Image => {
+                let bg = format!("background-image:url({})", src);
                 html! {
-                  <div id="media_img">
-                      <img draggable="false" title="" src={ src } />
-                  </div>
+                  <div id="media_img" style={bg}></div>
                 }
             }
             MediaType::Video => {

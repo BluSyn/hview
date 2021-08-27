@@ -35,8 +35,10 @@ pub struct PageProps {
 pub struct Page {
     link: ComponentLink<Self>,
     props: PageProps,
-    task: Option<FetchTask>,
     modal: ModalProps,
+    task: Option<FetchTask>,
+    loaded: Option<String>,
+    show_loading: bool,
 }
 
 impl Component for Page {
@@ -47,8 +49,10 @@ impl Component for Page {
         Self {
             link,
             props,
-            task: None,
             modal: ModalProps::default(),
+            task: None,
+            loaded: None,
+            show_loading: true,
         }
     }
 
@@ -57,10 +61,12 @@ impl Component for Page {
             PageMsg::PageLoad(result) => match result {
                 Ok(data) => {
                     self.props.page = Some(data);
+                    self.show_loading = false;
                     true
                 }
                 Err(error) => {
                     ConsoleService::error(format!("Invalid response: {:?}", error).as_str());
+                    self.show_loading = false;
                     false
                 }
             },
@@ -68,6 +74,7 @@ impl Component for Page {
                 ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
                 self.modal.src = src.to_string();
                 self.modal.media = MediaType::new(src.as_str());
+                self.show_loading = false;
 
                 true
             }
@@ -87,22 +94,30 @@ impl Component for Page {
 
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         if self.props.path != props.path {
+            ConsoleService::info(format!("Page Changed: {:?}", props.path).as_str());
+
             if is_media(props.path.as_str()) {
                 // Trigger modal
                 self.link
                     .callback(PageMsg::LoadModal)
                     .emit(props.path.to_owned());
+                self.show_loading = true;
             } else {
-                ConsoleService::info(format!("Page Changed: {:?}", props.path).as_str());
-                self.task = self.fetch_page(props.path.as_str());
+                // Only re-fetch page if not already loaded
+                if self.loaded.is_none() || self.loaded.as_ref().unwrap() != &props.path {
+                    self.loaded = Some(props.path.to_owned());
+                    self.task = self.fetch_page(props.path.as_str());
+                    self.show_loading = true;
+                } else {
+                    self.show_loading = false;
+                }
 
                 // Reset Modal
-                self.modal = ModalProps::default()
+                self.modal = ModalProps::default();
             }
 
             self.props.path = props.path;
-            // TODO: Render here to show loading animation?
-            false
+            true
         } else {
             false
         }
@@ -126,12 +141,15 @@ impl Component for Page {
                 fetch_path = &self.props.path;
             }
 
+            self.loaded = Some(fetch_path.to_string());
             self.task = self.fetch_page(fetch_path);
         }
     }
 
     fn view(&self) -> Html {
-        let mut title = "Loading...";
+        ConsoleService::info(format!("RENDERING: Loading? {:?}", self.show_loading).as_str());
+
+        let mut title = "";
         let mut base_path = "";
 
         let content = if let Some(data) = &self.props.page {
@@ -173,7 +191,7 @@ impl Component for Page {
                 </div>
             }
         } else {
-            html! { <p>{ "..." }</p> }
+            html! {}
         };
 
         // Convert title into links for each subdir
@@ -202,7 +220,7 @@ impl Component for Page {
         html! {
             <>
                 <Modal src={ self.modal.src.to_owned() } media={ self.modal.media.to_owned() } />
-                <h1 id="title">{ for html_title }</h1>
+                <h1 id="title" class={ if self.show_loading { "loading" } else { "" } }>{ for html_title }</h1>
                 { content }
             </>
         }

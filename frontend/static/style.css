@@ -23,6 +23,14 @@ h1 {
 h1 > span:hover {
   color: #f1c40f;
 }
+h1.loading a {
+    animation: color-change 3s infinite;
+}
+@keyframes color-change {
+  0% { color: #dfe6e9; }
+  25% { color: #ff9800; }
+  90% { color: #dfe6e9; }
+}
 img.thumb {
     width: 230px;
     height: 310px;
@@ -54,4 +62,13 @@ span.thumb > svg {
     max-height: 96vh;
     margin: auto;
     object-fit: contain;
+}
+#media_img {
+    background-color: transparent;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+
+    /* Technically not standard compliant? Works in Chrome only */
+    transition: background-image 0.3s ease-out;
 }
