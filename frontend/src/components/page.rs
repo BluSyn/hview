@@ -151,7 +151,6 @@ impl Component for Page {
 
         let mut title = "";
         let mut base_path = "";
-
         let content = if let Some(data) = &self.props.page {
             title = data.title.as_str();
             base_path = data.base_path.as_str();

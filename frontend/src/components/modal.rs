@@ -181,7 +181,7 @@ impl Component for Modal {
         let src = format!("{}{}", SERVER_URL, p.src);
         let media = match p.media {
             MediaType::Image => {
-                let bg = format!("background-image:url({})", src);
+                let bg = format!("background-image:url('{}')", src);
                 html! {
                   <div id="media_img" style={ bg }></div>
                 }
