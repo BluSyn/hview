@@ -6,11 +6,10 @@ use dir::{get_dir, Dir};
 
 use std::net::IpAddr;
 use std::path::PathBuf;
-use std::time::Instant;
 
 use actix_files::NamedFile;
 use actix_web::{
-    error::ErrorNotFound, get, web::Json, App, Either, Error, HttpRequest, HttpServer,
+    error::ErrorNotFound, get, middleware, web::Json, App, Either, Error, HttpRequest, HttpServer,
 };
 
 // type FileOrJson = Either<NamedFile, Result<Json<Temp>, Error>>;
@@ -30,9 +29,7 @@ async fn route(req: HttpRequest) -> FileOrJson {
             }
         } else {
             // Temporary: profile this function call
-            let now = Instant::now();
             if let Ok(dir) = get_dir(&path) {
-                println!("Time elapsed {}ms", now.elapsed().as_micros());
                 Ok(Either::B(Json(dir)))
             } else {
                 Err(ErrorNotFound("DIR Not Found"))
@@ -45,14 +42,21 @@ async fn route(req: HttpRequest) -> FileOrJson {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(route))
-        .bind(format!(
-            "{}:{}",
-            CFG.host
-                .parse::<IpAddr>()
-                .expect("Invalid bind IP configured"),
-            &CFG.port
-        ))?
-        .run()
-        .await
+    std::env::set_var("RUST_LOG", "actix_web=info");
+    env_logger::init();
+
+    HttpServer::new(|| {
+        App::new()
+            .wrap(middleware::Logger::default())
+            .service(route)
+    })
+    .bind(format!(
+        "{}:{}",
+        CFG.host
+            .parse::<IpAddr>()
+            .expect("Invalid bind IP configured"),
+        &CFG.port
+    ))?
+    .run()
+    .await
 }
