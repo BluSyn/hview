@@ -10,7 +10,7 @@ mod components;
 use crate::components::page::Page;
 
 // TODO: Move this to config
-pub const SERVER_URL: &str = "http://localhost:8000/";
+pub const SERVER_URL: &str = "http://localhost:8000";
 
 #[derive(Switch, Clone)]
 pub enum AppRoute {
