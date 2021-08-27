@@ -6,7 +6,7 @@ use structopt::StructOpt;
 #[structopt(name = "hview")]
 pub struct Config {
     //// Root dir containing files to serve
-    #[structopt(short, long, default_value = "./test-sample/")]
+    #[structopt(short, long, default_value = "./test-fixtures/")]
     pub dir: String,
 
     //// Basepath: Additional path for URI's (eg, "subdir" adds "/subdir/" to add URIs)
