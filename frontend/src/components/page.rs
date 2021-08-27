@@ -217,10 +217,19 @@ impl Component for Page {
             }
         });
 
+        let loading = if self.show_loading {
+            html! {<span class="loading"></span>}
+        } else {
+            html! {}
+        };
+
         html! {
             <>
                 <Modal src={ self.modal.src.to_owned() } media={ self.modal.media.to_owned() } />
-                <h1 id="title" class={ if self.show_loading { "loading" } else { "" } }>{ for html_title }</h1>
+                <h1 id="title">
+                    { for html_title }
+                    { loading }
+                </h1>
                 { content }
             </>
         }

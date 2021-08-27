@@ -183,7 +183,7 @@ impl Component for Modal {
             MediaType::Image => {
                 let bg = format!("background-image:url({})", src);
                 html! {
-                  <div id="media_img" style={bg}></div>
+                  <div id="media_img" style={ bg }></div>
                 }
             }
             MediaType::Video => {
