@@ -21,24 +21,25 @@ async fn route(req: HttpRequest) -> FileOrJson {
     let file: PathBuf = req.match_info().query("file").parse().unwrap();
     let path: PathBuf = DIR.join(file);
 
-    match std::fs::metadata(&path) {
-        Ok(meta) => {
-            if meta.is_file() {
-                let file = NamedFile::open(path).unwrap();
+    if let Ok(meta) = std::fs::metadata(&path) {
+        if meta.is_file() {
+            if let Ok(file) = NamedFile::open(path) {
                 Ok(Either::A(file.use_last_modified(true)))
             } else {
-                // Temporary: profile this function call
-                let now = Instant::now();
-                match get_dir(&path) {
-                    Ok(dir) => {
-                        println!("Time elapsed {}ms", now.elapsed().as_micros());
-                        Ok(Either::B(Json(dir)))
-                    }
-                    Err(_) => Err(ErrorNotFound("Dir does not exist")),
-                }
+                Err(ErrorNotFound("File Not Found"))
+            }
+        } else {
+            // Temporary: profile this function call
+            let now = Instant::now();
+            if let Ok(dir) = get_dir(&path) {
+                println!("Time elapsed {}ms", now.elapsed().as_micros());
+                Ok(Either::B(Json(dir)))
+            } else {
+                Err(ErrorNotFound("DIR Not Found"))
             }
         }
-        Err(_) => Err(ErrorNotFound("Path Not Found")),
+    } else {
+        Err(ErrorNotFound("Path Not Found"))
     }
 }
 
