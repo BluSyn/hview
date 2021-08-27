@@ -5,12 +5,9 @@ use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 use yew::services::ConsoleService;
 use yew::Properties;
 
-use web_sys::Node;
-use yew::virtual_dom::VNode;
-
 use super::entry::{Entry, EntryProps};
 use super::modal::{is_media, MediaType, Modal, ModalProps};
-use crate::{App, SERVER_URL};
+use crate::{App, AppAnchor, AppRoute, SERVER_URL};
 
 #[derive(Deserialize, Clone, PartialEq, Debug)]
 pub struct Dir {
@@ -179,46 +176,33 @@ impl Component for Page {
             html! { <p>{ "..." }</p> }
         };
 
-        // Convert title into span's for each subdir
-        // TODO: This is a hack to inject HTML directly into macro
-        // is there a better solution?
-        let html_title = {
-            let combined = format!("{}{}", base_path, title);
-            let split = combined.split_inclusive('/').enumerate();
-            let clone = split.clone();
-            let span = web_sys::window()
-                .unwrap()
-                .document()
-                .unwrap()
-                .create_element("h1")
-                .unwrap();
-            span.set_id("title");
-            span.set_inner_html(
-                split
-                    .map(|s| {
-                        // TODO: Moving this to separate function required
-                        // an impossible to define type signature
-                        format!(
-                            "<a href={}>{}</a>",
-                            clone
-                                .clone()
-                                .filter(|&(i, _)| i <= s.0)
-                                .map(|(_, e)| e)
-                                .collect::<String>(),
-                            s.1
-                        )
-                    })
-                    .collect::<String>()
-                    .as_str(),
-            );
-            let node = Node::from(span);
-            VNode::VRef(node)
+        // Convert title into links for each subdir
+        let combined = if title == String::from("") {
+            base_path.to_string()
+        } else {
+            format!("{}{}/", base_path, title)
         };
+        let split = combined.split_inclusive('/').enumerate();
+        let clone = split.clone();
+        let html_title = split.map(|s| {
+            // Note: Not happy with all the "clone" calls
+            // but the strings have to be duplicated in some way.
+            // Current solution adds one extra "clone" than is ideally necessary
+            let link = clone
+                .clone()
+                .filter(|&(i, _)| i <= s.0)
+                .map(|(_, e)| e)
+                .collect::<String>();
+            let text = &s.1;
+            html! {
+                <AppAnchor route={ AppRoute::Entry(link) }>{ text }</AppAnchor>
+            }
+        });
 
         html! {
             <>
                 <Modal src={ self.modal.src.to_owned() } media={ self.modal.media.to_owned() } />
-                { html_title }
+                <h1 id="title">{ for html_title }</h1>
                 { content }
             </>
         }
