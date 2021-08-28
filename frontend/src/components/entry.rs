@@ -107,14 +107,19 @@ impl Component for Entry {
             EntryType::Folder => classes!("bi", "bi-folder-fill", "text-info"),
         };
 
+        let size = match &p.etype {
+            EntryType::File => html! {<small>{ &p.size/1000 }{ "KiB" }{" / "}</small>},
+            EntryType::Folder => html! {},
+        };
+
         html! {
-            <section class=classes!("col-xs-12","col-sm-6","col-md-4","col-lg-3","mb-sm-2","mb-lg-5","text-break", etype)>
+            <section class=classes!("col-sm-12","col-md-6","col-lg-3","mb-sm-2","mb-lg-5","text-break", etype)>
                 { thumb }
                 <AppAnchor classes={ etype } route=AppRoute::Entry(link)>
                     <i class={ icon }></i>
                     <strong>{" "}{ &p.name }</strong>
                 </AppAnchor><br />
-                <small>{ &p.size/1000 }{ "KiB" }</small> { " / " }
+                { size }
                 <small><time datetime={ p.date_string.to_owned() }>{ &p.date_string }</time></small>
             </section>
         }
