@@ -21,9 +21,10 @@ pub struct Dir {
 
 #[derive(Debug)]
 pub enum PageMsg {
-    PageLoad(Dir),
-    PageError(Error),
-    LoadModal(String),
+    Page(Dir),
+    File,
+    Error(Error),
+    Modal(String),
     ModalNext,
     ModalPrevious,
 }
@@ -63,19 +64,44 @@ impl Component for Page {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            PageMsg::PageLoad(page) => {
+            PageMsg::Page(page) => {
                 self.props.page = Some(page);
+                self.error = None;
                 self.show_loading = false;
                 true
             }
-            PageMsg::PageError(error) => {
+            // TODO: This means non-media (non-modal display) files
+            // end up loading twice. Once on request,
+            // and then again on popup.
+            // Not sure the best solution at the moment.
+            // (Start with HEAD request instead of GET?)
+            PageMsg::File => {
+                let url = format!("{}{}", SERVER_URL, &self.props.path);
+                web_sys::window()
+                    .unwrap()
+                    .open_with_url_and_target(&url, "_new_file")
+                    .unwrap();
+
+                self.show_loading = false;
+                self.error = None;
+
+                // Show containing dir by navigating to parent directory
+                if let Some(index) = &self.props.path.rfind('/') {
+                    let path = &self.props.path[0..index + 1];
+                    App::change_route(path.to_string());
+                }
+
+                false
+            }
+            PageMsg::Error(error) => {
                 ConsoleService::error(format!("Invalid response: {:?}", error).as_str());
                 self.error = Some(error);
                 self.show_loading = false;
                 self.modal = ModalProps::default();
                 true
             }
-            PageMsg::LoadModal(src) => {
+
+            PageMsg::Modal(src) => {
                 ConsoleService::info(format!("Loading modal for: {:?}", src).as_str());
                 self.modal.src = src.to_string();
                 self.modal.media = MediaType::from_path(src.as_str());
@@ -102,7 +128,7 @@ impl Component for Page {
             if is_media(props.path.as_str()) {
                 // Trigger modal
                 self.link
-                    .callback(PageMsg::LoadModal)
+                    .callback(PageMsg::Modal)
                     .emit(props.path.to_owned());
                 self.show_loading = true;
             } else {
@@ -134,7 +160,7 @@ impl Component for Page {
             if is_media(&self.props.path.as_str()) {
                 // Trigger modal
                 self.link
-                    .callback(PageMsg::LoadModal)
+                    .callback(PageMsg::Modal)
                     .emit(self.props.path.to_owned());
 
                 // Get dir of file
@@ -217,10 +243,14 @@ impl Component for Page {
             }
         });
 
-        let loading = if self.error.is_some() {
-            html! {<span class="error">{ self.error.as_ref().unwrap() }</span>}
-        } else if self.show_loading {
+        let loading = if self.show_loading {
             html! {<span class="loading"></span>}
+        } else {
+            html! {}
+        };
+
+        let error = if self.error.is_some() {
+            html! {<h2 class="text-danger">{ "Error: " }{ self.error.as_ref().unwrap() }</h2>}
         } else {
             html! {}
         };
@@ -232,6 +262,7 @@ impl Component for Page {
                     { for html_title }
                     { loading }
                 </h1>
+                { error }
                 { content }
             </>
         }
@@ -247,19 +278,26 @@ impl Page {
             .link
             .callback(|response: Response<Json<Result<Dir, Error>>>| {
                 let status = response.status();
-                if status.is_success() {
-                    let Json(data) = response.into_body();
-                    match data {
-                        Ok(dir) => PageMsg::PageLoad(dir),
-                        Err(err) => PageMsg::PageError(err),
-                    }
-                } else {
+                if !status.is_success() {
                     let err = anyhow!(
                         "Error: {} ({})",
                         &status.canonical_reason().unwrap(),
                         &status.as_str()
                     );
-                    PageMsg::PageError(err)
+                    return PageMsg::Error(err);
+                }
+
+                let content = response.headers().get("content-type");
+                if content.is_none() {
+                    return PageMsg::Error(anyhow!("Invalid Content Type"));
+                } else if content.unwrap() != &"application/json" {
+                    return PageMsg::File;
+                }
+
+                let Json(data) = response.into_body();
+                match data {
+                    Ok(dir) => PageMsg::Page(dir),
+                    Err(err) => PageMsg::Error(err),
                 }
             });
         let task = FetchService::fetch(request, callback).expect("Could not load page");

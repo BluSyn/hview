@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use yew::services::ConsoleService;
 use yew_router::components::RouterAnchor;
 use yew_router::prelude::*;
 use yew_router::{
@@ -41,6 +42,7 @@ impl Component for App {
         let render = Router::render(move |switch: AppRoute| -> Html {
             match switch {
                 AppRoute::Entry(path) => {
+                    ConsoleService::info("Loading Path");
                     html! { <Page path={ path } /> }
                 }
             }
