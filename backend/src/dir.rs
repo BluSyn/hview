@@ -117,7 +117,26 @@ pub fn get_dir(dir: &PathBuf) -> Result<Dir, DirError> {
             details.thumb = if let Some(th) = get_random_thumb(&path.join(".th")) {
                 Some(th.strip_prefix(&basedir).unwrap().display().to_string())
             } else {
-                None
+                // TODO: This could be more efficient.
+                // Check 2-levels deep for thumbnail of folder
+                let subthumb = |path: &PathBuf| {
+                    for subentry in read_dir(&path).unwrap() {
+                        if let Ok(subentry) = subentry {
+                            let subpath = subentry.path();
+                            if let Some(th) = get_random_thumb(&subpath.join(".th")) {
+                                return Some(th);
+                            }
+                        }
+                    }
+
+                    None
+                };
+
+                if let Some(th) = subthumb(&path) {
+                    Some(th.strip_prefix(&basedir).unwrap().display().to_string())
+                } else {
+                    None
+                }
             };
             page.folders.push(details);
         } else {
