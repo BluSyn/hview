@@ -299,6 +299,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "alphanumeric-sort"
+version = "1.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20e59b2ccb4c1ffbbf45af6f493e16ac65a66981c85664f1587816c0b08cd698"
+
+[[package]]
 name = "ansi_term"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -963,6 +969,7 @@ version = "0.1.0"
 dependencies = [
  "actix-files",
  "actix-web",
+ "alphanumeric-sort",
  "chrono",
  "env_logger",
  "lazy_static",

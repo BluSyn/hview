@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use std::path::PathBuf;
+use std::path::Path;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -41,7 +41,7 @@ pub struct Config {
 
 lazy_static! {
     pub static ref CFG: Config = Config::from_args();
-    pub static ref DIR: PathBuf = PathBuf::from(&CFG.dir);
+    pub static ref DIR: &'static Path = Path::new(&CFG.dir);
     pub static ref BASEPATH: &'static str = CFG.basepath.as_str();
     pub static ref THUMB_FORMAT: &'static str = CFG.format.as_str();
 }
