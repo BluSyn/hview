@@ -119,7 +119,7 @@ pub fn get_dir(dir: &PathBuf) -> Result<Dir, DirError> {
             } else {
                 // TODO: This could be more efficient.
                 // Check 2-levels deep for thumbnail of folder
-                let subthumb = |path: &PathBuf| {
+                let subthumb = |path: &PathBuf| -> Option<PathBuf> {
                     for subentry in read_dir(&path).unwrap() {
                         if let Ok(subentry) = subentry {
                             let subpath = subentry.path();
