@@ -136,8 +136,8 @@ pub fn get_dir(dir: &PathBuf) -> Result<Dir, DirError> {
     }
 
     // sort by name
-    page.folders.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
-    page.files.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+    page.files.sort_by_key(|k| k.name.to_lowercase());
+    page.folders.sort_by_key(|k| k.name.to_lowercase());
 
     Ok(page)
 }
