@@ -90,7 +90,7 @@ impl Component for Entry {
         };
 
         let thumb = if let Some(thumb) = &p.thumb {
-            let src = format!("{}/{}", SERVER_URL, &thumb);
+            let src = format!("{}{}", *SERVER_URL, &thumb);
             html! {
             <>
                 <AppAnchor classes={ etype } route=AppRoute::Entry(link.to_owned())>

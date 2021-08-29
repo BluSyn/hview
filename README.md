@@ -8,9 +8,9 @@ Backend + Frontend built in rust with `actix-web` and `yew`.
 
 ```sh
 cd backend
-cargo run -- -d <path_to_files> -p <port:8000>
+cargo run -- -d <path_to_files> -p <port:8000> -h <host:localhost>
 cd frontend
-trunk serve
+trunk serve --proxy-backend=http://<backend_host>:<backend_port> --proxy-rewrite=/api/
 ```
 
 **NOTE**: This is just a hobby project for demo purposes.

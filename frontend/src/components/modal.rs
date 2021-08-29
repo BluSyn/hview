@@ -170,7 +170,7 @@ impl Component for Modal {
         let p = &self.props;
         ConsoleService::info(format!("Rendering Modal: {:?}", p.src).as_str());
 
-        let src = format!("{}{}", SERVER_URL, p.src);
+        let src = format!("{}{}", *SERVER_URL, p.src);
         let media = match p.media {
             MediaType::Image => {
                 let bg = format!("background-image:url('{}')", src);

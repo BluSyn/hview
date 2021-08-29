@@ -1,3 +1,5 @@
+use lazy_static::lazy_static;
+use std::env;
 use yew::prelude::*;
 use yew::services::ConsoleService;
 use yew_router::components::RouterAnchor;
@@ -10,8 +12,11 @@ use yew_router::{
 mod components;
 use crate::components::page::Page;
 
-// TODO: Move this to config
-pub const SERVER_URL: &str = "http://localhost:8000";
+// TODO: Move this to config?
+lazy_static! {
+    pub static ref SERVER_URL: String =
+        env::var("TRUNK_PROXY_REWRITE").unwrap_or(String::from("/api/"));
+}
 
 #[derive(Switch, Clone)]
 pub enum AppRoute {

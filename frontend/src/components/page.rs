@@ -76,7 +76,7 @@ impl Component for Page {
             // Not sure the best solution at the moment.
             // (Start with HEAD request instead of GET?)
             PageMsg::File => {
-                let url = format!("{}{}", SERVER_URL, &self.props.path);
+                let url = format!("{}{}", *SERVER_URL, &self.props.path);
                 web_sys::window()
                     .unwrap()
                     .open_with_url_and_target(&url, "_new_file")
@@ -271,7 +271,8 @@ impl Component for Page {
 
 impl Page {
     fn fetch_page(&self, path: &str) -> Option<FetchTask> {
-        let request = Request::get(format!("{}{}", SERVER_URL, path).as_str())
+        let url = format!("{}{}", *SERVER_URL, path);
+        let request = Request::get(url.as_str())
             .body(Nothing)
             .expect("Could not load from API");
         let callback = self
