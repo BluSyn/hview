@@ -72,7 +72,7 @@ impl Component for Page {
             }
             // TODO: This means non-media (non-modal display) files
             // end up loading twice. Once on request,
-            // and then again on popup.
+            // and then again on popup. Parent directy also reloads.
             // Not sure the best solution at the moment.
             // (Start with HEAD request instead of GET?)
             PageMsg::File => {
@@ -88,7 +88,7 @@ impl Component for Page {
                 // Show containing dir by navigating to parent directory
                 if let Some(index) = &self.props.path.rfind('/') {
                     let path = &self.props.path[0..index + 1];
-                    App::change_route(path.to_string());
+                    App::replace_route(path.to_string());
                 }
 
                 false
@@ -271,6 +271,8 @@ impl Component for Page {
 
 impl Page {
     fn fetch_page(&self, path: &str) -> Option<FetchTask> {
+        // TODO: This results in double "//" in path.
+        // Not a major issue, but should be accounted for
         let url = format!("{}{}", *SERVER_URL, path);
         let request = Request::get(url.as_str())
             .body(Nothing)

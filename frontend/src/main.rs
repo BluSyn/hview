@@ -68,6 +68,12 @@ impl App {
             state: (),
         }));
     }
+    pub fn replace_route(src: String) {
+        RouteAgent::dispatcher().send(RouteRequest::ReplaceRoute(Route {
+            route: src,
+            state: (),
+        }));
+    }
 }
 
 fn main() {
