@@ -14,4 +14,4 @@ COPY --from=builder /hview/backend/test-fixtures/ /usr/src/app/test-fixtures/
 
 WORKDIR /usr/src/app
 
-CMD ["./hview-backend"]
+ENTRYPOINT ["./hview-backend"]
