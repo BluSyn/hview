@@ -45,18 +45,21 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_web=info");
     env_logger::init();
 
+    let host = CFG
+        .host
+        .parse::<IpAddr>()
+        .expect("Invalid bind IP configured");
+    let port = &CFG.port;
+    let binder = format!("{}:{}", &host, &port);
+
+    println!("Starting hview-backend @ {}", &binder);
+
     HttpServer::new(|| {
         App::new()
             .wrap(middleware::Logger::default())
             .service(route)
     })
-    .bind(format!(
-        "{}:{}",
-        CFG.host
-            .parse::<IpAddr>()
-            .expect("Invalid bind IP configured"),
-        &CFG.port
-    ))?
+    .bind(binder)?
     .run()
     .await
 }

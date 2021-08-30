@@ -14,11 +14,11 @@ pub struct Config {
     pub basepath: String,
 
     //// Host to listen to
-    #[structopt(long, short, default_value = "127.0.0.1")]
+    #[structopt(long, short, default_value = "0.0.0.0")]
     pub host: String,
 
     //// Port to listen to
-    #[structopt(long, short, default_value = "8000")]
+    #[structopt(long, short, default_value = "8010")]
     pub port: u16,
 
     //// Verbose log output
