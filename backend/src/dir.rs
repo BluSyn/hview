@@ -251,7 +251,7 @@ mod test {
     #[test]
     fn test_get_random_thumb() {
         let dir = PathBuf::from(format!("{}imgs/.th", &*DIR.to_str().unwrap()));
-        let thumb = FileEntry::get_random_thumb(&*DIR);
+        let thumb = FileEntry::get_random_thumb(&dir);
         assert!(thumb.is_some());
     }
 }
