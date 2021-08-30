@@ -53,6 +53,7 @@ async fn main() -> std::io::Result<()> {
     let binder = format!("{}:{}", &host, &port);
 
     println!("Starting hview-backend @ {}", &binder);
+    println!("Serving dir: {:?}", &*DIR);
 
     HttpServer::new(|| {
         App::new()
