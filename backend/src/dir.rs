@@ -34,7 +34,11 @@ impl FileEntry {
     fn from_entry(entry: std::fs::DirEntry) -> Result<Self, DirError> {
         let meta = entry.metadata()?;
         let name = entry.file_name().into_string().unwrap();
-        let path = entry.path().strip_prefix(&*DIR).unwrap().to_path_buf();
+        let path = if let Ok(path) = entry.path().strip_prefix(&*DIR) {
+            path.to_path_buf()
+        } else {
+            entry.path()
+        };
         let size = meta.len();
         let date = if let Ok(date) = meta.modified() {
             date.duration_since(std::time::UNIX_EPOCH)
@@ -172,7 +176,11 @@ pub fn get_dir(dir: &PathBuf) -> Result<Dir, DirError> {
 
     let mut page = Dir::new();
     let thpath = dir.join(".th");
-    page.title = dir.strip_prefix(&*DIR).unwrap().display().to_string();
+    page.title = if let Ok(title) = dir.strip_prefix(&*DIR) {
+        title.display().to_string()
+    } else {
+        dir.display().to_string()
+    };
 
     for entry in read_dir(dir)? {
         let entry = entry?;
