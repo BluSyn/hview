@@ -6,12 +6,13 @@ RUN rustup update && rustup target add wasm32-unknown-unknown
 
 WORKDIR /hview
 COPY ./frontend .
-
-## TODO: Fix this env path for backend
-RUN TRUNK_PROXY_REWRITE=http://hview-backend:8010 trunk build --release
+RUN trunk build --release
 
 ## NGINX static server
 FROM nginx:stable-alpine
 RUN apk update && apk upgrade
+
+# Custom nginx config
+COPY --from=builder /hview/etc/default.conf.template /etc/nginx/templates/default.conf.template
 
 COPY --from=builder /hview/dist/ /usr/share/nginx/html
