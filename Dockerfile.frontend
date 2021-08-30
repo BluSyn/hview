@@ -1,0 +1,15 @@
+## Rust Build backend
+FROM rust:1.54 as builder
+
+RUN cargo install trunk
+RUN rustup update && rustup target add wasm32-unknown-unknown
+
+WORKDIR /hview
+COPY ./frontend .
+RUN trunk build --release
+
+## NGINX static server
+FROM nginx:stable-alpine
+RUN apk update && apk upgrade
+
+COPY --from=builder /hview/dist/ /usr/share/nginx/html

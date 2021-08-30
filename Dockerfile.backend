@@ -1,0 +1,17 @@
+## Rust Build backend
+FROM rust:1.54 as builder
+
+WORKDIR /hview
+COPY . .
+
+RUN cargo build --bin hview-backend --release
+
+## App Launcher
+FROM debian:buster-slim
+
+COPY --from=builder /hview/target/release/hview-backend /usr/src/app/
+COPY --from=builder /hview/backend/test-fixtures/ /usr/src/app/test-fixtures/
+
+WORKDIR /usr/src/app
+
+CMD ["./hview-backend"]
