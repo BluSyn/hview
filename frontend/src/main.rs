@@ -74,6 +74,13 @@ impl App {
             state: (),
         }));
     }
+    pub fn set_title(title: String) {
+        web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .set_title(&title);
+    }
 }
 
 fn main() {

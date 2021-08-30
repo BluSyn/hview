@@ -173,6 +173,12 @@ impl Component for Page {
             self.loaded = Some(fetch_path.to_string());
             self.task = self.fetch_page(fetch_path);
         }
+
+        if let Some(data) = &self.props.page {
+            if !data.title.is_empty() {
+                App::set_title(data.title.to_string());
+            }
+        }
     }
 
     fn view(&self) -> Html {
