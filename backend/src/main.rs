@@ -16,15 +16,12 @@ use actix_web::{
 #[get("/{file:.*}")]
 async fn route(req: HttpRequest) -> Result<Either<NamedFile, Json<Dir>>, Error> {
     let file: PathBuf = req.match_info().query("file").parse().unwrap();
-
     let safe_file: PathBuf = if file.starts_with("/") {
         file.strip_prefix("/").unwrap().to_path_buf()
     } else {
         file
     };
     let path: PathBuf = DIR.join(safe_file);
-
-    println!("Loading Path: {:?}", &path);
 
     if let Ok(meta) = std::fs::metadata(&path) {
         if meta.is_file() {
