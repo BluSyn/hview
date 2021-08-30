@@ -16,8 +16,8 @@ use actix_web::{
 #[get("/{file:.*}")]
 async fn route(req: HttpRequest) -> Result<Either<NamedFile, Json<Dir>>, Error> {
     let file: PathBuf = req.match_info().query("file").parse().unwrap();
-    let safe_file: PathBuf = if file.starts_with("/") {
-        file.strip_prefix("/").unwrap().to_path_buf()
+    let safe_file: PathBuf = if let Ok(strip) = file.strip_prefix("/") {
+        strip.to_path_buf()
     } else {
         file
     };
